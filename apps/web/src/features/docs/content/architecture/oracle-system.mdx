@@ -1,0 +1,333 @@
+import { MermaidPlaceholder } from "../../_components/MermaidPlaceholder";
+
+# Oracle System
+
+The protocol needs **reliable, real-time prices** for the tokens you deposit and withdraw. Oracles supply those prices. Because wrong or manipulated prices could put user funds at risk, YieldShield uses **multiple independent price sources**, cross-checks them, and adds **extra safeguards on the riskiest operations** (e.g. when you withdraw collateral). This page explains how that works and why it makes the system more secure and robust than a single price feed. _How does the protocol know what my assets are worth, and how is that protected from manipulation?_
+
+## Overview
+
+YieldShield requires accurate token pricing for several critical operations:
+
+- **Collateral Calculations**: Determining how much protector collateral is needed for shielded deposits
+- **Yield Calculations**: Computing the USD value of yield earned over time
+- **Cross-Asset Withdrawals**: Converting between different token types at fair market rates
+- **Fee Calculations**: Calculating commission, pool fees, and protocol fees based on yield
+
+The oracle system is designed to be:
+
+- **Modular**: Support multiple oracle sources (Chainlink, Pyth, ERC4626 NAV, UniswapV3 TWAP)
+- **Resilient**: Include circuit breakers and fallback mechanisms
+- **Manipulation-Resistant**: Detect and prevent oracle manipulation attacks
+- **Extensible**: Easy to add new oracle types as needed
+
+## Innovation and Robustness
+
+YieldShield's oracle design is a **core differentiator**: a multilayered, manipulation-resistant system that is both technically precise and robust.
+
+**Defense-in-depth:** Multiple independent feed types (Chainlink, Pyth, ERC4626, UniswapV3) avoid a single point of failure. Each has its own guards: Chainlink (L2 sequencer + grace period); Pyth (circuit breakers spot vs EMA, staleness); ERC4626 (share-inflation protection, min supply); UniswapV3 (TWAP). Staleness and 8-decimal USD normalization apply across feeds. Only **authorized callers** (e.g. factory) or owner can change feed configuration.
+
+**Critical-path protection:** The pool does **not** use plain `getPrice` or `getEquivalentAmount` on the most sensitive operations. Cross-asset shielded withdrawal uses `getPriceWithCircuitBreaker(UNDERWRITER_TOKEN)`; collateral at deposit uses `getEquivalentAmountWithCircuitBreaker`. This reduces the impact of flash loans and short-lived manipulation.
+
+**Dual-feed and challenge:** For tokens where NAV can diverge from market (e.g. yield-bearing vaults), CompositeOracle supports **primary + backup** feeds. If they diverge beyond a threshold (e.g. 0.75%), anyone can **challenge**; after a **timelock** (e.g. 16h) the active feed can switch to the backup. A **cooldown** (e.g. 1h) limits spam. `revertToPrimary` switches back when conditions stabilize. This gives a structured, timelocked way to handle NAV-vs-market or feed-failure edge cases.
+
+**Composite routing and extensibility:** One `IPriceOracle` interface routes per-token to the right feed. New types implement `IOracleFeed` and register in CompositeOracle without changing pool or factory logic. The same interface supports spot, circuit-breaker-protected, and equivalent-amount queries, reducing misuse of unprotected paths.
+
+## Architecture
+
+<MermaidPlaceholder chart={`
+graph TB
+    Pool[Shield Pool]
+    Composite["CompositeOracle<br/>(with dual-feed support)"]
+    Chainlink[ChainlinkOracleFeed]
+    Pyth[PythOracle]
+    ERC4626[ERC4626OracleFeed]
+    PythEMA[PythEMAOracleFeed]
+    ValidationLib[OracleValidationLib]
+
+    Pool -->|Price queries| Composite
+    Composite -->|"Single-feed tokens"| Chainlink
+    Composite -->|"Single-feed tokens"| Pyth
+    Composite -->|"Dual-feed: Primary"| ERC4626
+    Composite -->|"Dual-feed: Backup"| Pyth
+    Composite -->|"Dual-feed: Primary"| PythEMA
+    Chainlink -.->|Uses| ValidationLib
+    Pyth -.->|Uses| ValidationLib
+    Composite -.->|Uses| ValidationLib
+
+`}/>
+
+## Core Components
+
+### CompositeOracle and IPriceOracle
+
+The pool uses the **IPriceOracle** interface (implemented by CompositeOracle and others): `getPrice`, `getValue`, `getEquivalentAmount`, **`getPriceWithCircuitBreaker`**, and **`getEquivalentAmountWithCircuitBreaker`**. On the **most sensitive operations** the pool does **not** use plain `getPrice` or `getEquivalentAmount`:
+
+- **Cross-asset shielded withdrawal** (withdrawing collateral): `getPriceWithCircuitBreaker(UNDERWRITER_TOKEN)` to mitigate manipulation when converting `valueAtDeposit` into backing tokens.
+- **Deposit collateral calculation**: `getEquivalentAmountWithCircuitBreaker` so required protector amounts are not distorted by short-lived price moves.
+
+The **CompositeOracle** is the main entry point. It routes token price requests to the appropriate oracle feed and supports optional dual-feed mode with a challenge mechanism.
+
+**Key Features:**
+
+- Routes price queries to per-token oracle feeds
+- Normalizes all prices to 8 decimals (USD format)
+- **Only authorized callers** (e.g. factory) or **owner** can set feeds via `setTokenOracleFeed` / `setTokenOracleFeedDual`
+- **Optional dual-feed support** with primary + backup feeds per token
+- **Challenge mechanism** for switching between feeds during market stress
+
+**Core Functions (IPriceOracle):**
+
+- `getPrice(token)`: USD price (8 decimals)
+- `getValue(token, amount)`: USD value of token amount
+- `getEquivalentAmount(tokenA, amountA, tokenB)`: Equivalent amount in another token
+- `getPriceWithCircuitBreaker(token)`: Price with circuit-breaker check; reverts if deviation too high
+- `getEquivalentAmountWithCircuitBreaker(tokenA, amountA, tokenB)`: Equivalent amount using circuit-breaker-protected prices
+
+**CompositeOracle admin:**
+
+- `setTokenOracleFeed(token, oracleFeed)`: Configure single oracle feed (authorized or owner)
+- `setTokenOracleFeedDual(token, primaryFeed, backupFeed)`: Configure dual-feed mode (authorized or owner)
+
+**Dual-Feed Mode**
+
+Tokens can be configured with both a primary and backup oracle feed. This is now done **atomically during token whitelisting**, ensuring tokens are fully configured with oracle redundancy from the start:
+
+```solidity
+// During token whitelisting (via governance or initial deployment):
+factory.addToken(
+    tokenAddress,
+    "Token Name",
+    "SYMBOL",
+    navOracleFeed,     // Primary: stability-focused (e.g., ERC4626 NAV)
+    pythOracleFeed,    // Backup: market-responsive (e.g., Pyth) - use address(0) for single-feed
+    10000              // Min collateral ratio in basis points (100% = 10000)
+);
+```
+
+**Challenge Mechanism**
+
+When a token is in dual-feed mode, anyone can challenge the oracle if the primary and backup prices deviate significantly. Parameters: `deviationThresholdBps` (default 75 = 0.75%), `challengeDurationSec` (default 16 hours), `COOLDOWN_PERIOD` (1 hour), `MAX_CHALLENGE_DURATION` (7 days).
+
+1. Anyone can call `challengeForToken(token)` if deviation exceeds threshold (default 0.75%)
+2. A timelock period starts (default 16 hours)
+3. If deviation persists after timelock, `finalizeChallenge(token)` switches to backup oracle
+4. If deviation resolves, `cancelChallenge(token)` cancels the pending challenge
+5. When market stabilizes, `revertToPrimary(token)` switches back to primary
+6. A cooldown period (1 hour) prevents challenge spam
+
+## Token Whitelisting with Oracle Configuration
+
+When tokens are whitelisted via the `SplitRiskPoolFactory`, oracle feeds are configured atomically. This ensures tokens cannot exist in the protocol without proper price feed configuration.
+
+### Whitelisting Functions
+
+**`addToken()` - Governance Controlled:**
+
+```solidity
+function addToken(
+    address token,              // Token contract address
+    string memory name,         // Human-readable name
+    string memory symbol,       // Token symbol
+    address primaryOracleFeed,  // Primary oracle feed (required)
+    address backupOracleFeed,   // Backup oracle feed (address(0) for single-feed)
+    uint256 minCollateralRatioBp // Minimum collateral ratio in basis points
+) external onlyGovernance;
+```
+
+**`addTokenInitial()` - Owner Controlled (Initial Deployment):**
+
+Same parameters but callable by owner for initial protocol setup before governance is active.
+
+### Oracle Configuration During Whitelisting
+
+When a token is whitelisted:
+
+1. Token is added to the whitelist with metadata (name, symbol, oracle feeds, min collateral)
+2. If `backupOracleFeed == address(0)`: Single-feed mode via `setTokenOracleFeed()`
+3. If `backupOracleFeed != address(0)`: Dual-feed mode via `setTokenOracleFeedDual()`
+4. `TokenWhitelisted` event is emitted with both oracle addresses
+
+### When to Use Dual-Feed Mode
+
+**Use dual-feed mode when:**
+
+- The token is an ERC4626 vault or yield-bearing token where NAV may lag market price
+- High protocol TVL is expected for this token
+- Price manipulation is a concern (e.g., liquid staking derivatives)
+- The token has both a stable valuation source (NAV/accounting) and a market price source
+
+**Use single-feed mode when:**
+
+- The token is a simple stablecoin with Chainlink/Pyth support
+- Only one reliable price source exists
+- Token is for testing/development purposes
+
+### Example Governance Proposal
+
+To whitelist a new token with dual-feed oracle support via governance:
+
+```
+Proposal: Whitelist stETH with Dual-Feed Oracle
+
+Target: SplitRiskPoolFactory
+Function: addToken(
+    0xae7ab96520DE3A18E5e111B5EaijC4a35B1e50000,  // stETH address
+    "Lido Staked Ether",                           // name
+    "stETH",                                       // symbol
+    0x1234...EMAFeed,                              // Primary: Pyth EMA feed
+    0x5678...SpotFeed,                             // Backup: Pyth spot feed
+    15000                                          // 150% min collateral (volatile asset)
+)
+
+Rationale: stETH is a liquid staking derivative that benefits from EMA pricing
+for stability while having spot price backup for market responsiveness during
+depegging events.
+```
+
+### PythOracle
+
+The **PythOracle** integrates with Pyth Network for real-time price feeds with built-in circuit breaker protection.
+
+**Key Features:**
+
+- Pull-based price updates from Pyth Network
+- Staleness checks with configurable max price age
+- Circuit breaker comparing spot price to EMA (Exponential Moving Average)
+- Graceful fallback to EMA when deviation exceeds threshold
+
+**Circuit Breaker Protection:**
+
+The Pyth oracle includes a circuit breaker that compares the spot price to the EMA price:
+
+- If deviation exceeds threshold (default 5%), operations can revert or fall back to EMA
+- Prevents oracle manipulation attacks during flash loan attacks
+- `getPriceWithCircuitBreaker()`: Reverts if deviation too high
+- `getPriceWithFallback()`: Returns EMA price with reliability flag if deviation high
+
+### ChainlinkOracleFeed
+
+The **ChainlinkOracleFeed** provides price feeds from Chainlink's decentralized oracle network.
+
+**Key Features:**
+
+- Integration with Chainlink's AggregatorV3 interface
+- L2 sequencer uptime checks for Arbitrum/Optimism/Base
+- Grace period handling after sequencer recovery
+- Staleness validation with configurable max age
+
+**L2 Sequencer Protection:**
+
+For Layer 2 deployments, the Chainlink feed checks sequencer uptime:
+
+- Reverts if sequencer is down
+- Enforces 1-hour grace period after sequencer comes back up
+- Prevents stale price usage during L2 outages
+
+### ERC4626OracleFeed
+
+The **ERC4626OracleFeed** provides NAV-based pricing for ERC4626 yield-bearing vaults.
+
+**Key Features:**
+
+- Calculates share price using vault's `convertToAssets()` function
+- Combines NAV with underlying asset's USD price
+- Share inflation attack protection (minimum supply requirement)
+- Staleness checking for underlying oracle
+
+**Price Calculation:**
+
+```
+sharePrice = (assetsPerShare * underlyingUsdPrice) / 10^underlyingDecimals
+```
+
+### PythEMAOracleFeed
+
+The **PythEMAOracleFeed** provides EMA (Exponential Moving Average) prices from Pyth Network for smoother, more stable pricing.
+
+**Key Features:**
+
+- Uses Pyth's EMA price instead of spot price
+- Ideal as primary feed in dual-feed configurations
+- Reduces volatility and manipulation risk
+- Same staleness protection as PythOracle
+
+### OracleValidationLib
+
+A shared library providing validation functions used across all oracle implementations:
+
+- `validatePositivePrice()`: Ensure price is positive (Chainlink int256)
+- `validateNonZeroPrice()`: Ensure price is non-zero (uint256)
+- `validateStaleness()`: Check price age against max allowed
+- `calculateDeviation()`: Calculate deviation between two prices in basis points
+- `checkDeviation()`: Revert if deviation exceeds threshold
+
+## Price Format
+
+All prices in the oracle system are normalized to **8 decimals** (USD format):
+
+- `$1.00` = `100000000` (1e8)
+- `$1234.56` = `123456000000`
+- Token amounts are typically 18 decimals
+
+## Security Features
+
+### Staleness Protection
+
+All oracle feeds validate that price data is not stale:
+
+- Configurable `maxPriceAge` (typically 60-3600 seconds)
+- Reverts with `StalePrice` error if data is too old
+- Chainlink checks `answeredInRound` to detect stale rounds
+
+### Circuit Breakers
+
+The Pyth oracle includes circuit breaker protection:
+
+- Compares spot price to EMA price
+- Configurable deviation threshold (default 5%)
+- Prevents sudden price spikes from being exploited
+
+### Dual-Feed Challenge Mechanism
+
+For tokens with dual-feed configuration, the challenge mechanism provides additional protection:
+
+- Allows community to challenge if NAV significantly diverges from market price
+- Timelock prevents flash-attack switching
+- Automatic reversion when market conditions normalize
+- Cooldown prevents challenge spam attacks
+
+### L2 Sequencer Checks
+
+For L2 deployments, the Chainlink feed checks sequencer status:
+
+- Reverts if sequencer is down (`SequencerDown`)
+- Enforces grace period after recovery (`GracePeriodNotOver`)
+
+### Share Inflation Protection
+
+The ERC4626 feed protects against share inflation attacks:
+
+- Requires minimum total supply (1000 shares)
+- Prevents manipulation of empty or near-empty vaults
+
+## Integration with Shield Pool
+
+The Shield Pool uses the oracle system for:
+
+1. **Deposit collateral calculation**: `getEquivalentAmountWithCircuitBreaker()` calculates required protector collateral (circuit-breaker-protected).
+2. **Yield calculation**: `getValue()` determines USD value for fee calculations.
+3. **Cross-asset withdrawals**: `getPriceWithCircuitBreaker(UNDERWRITER_TOKEN)` is used when converting `valueAtDeposit` into backing tokens for the collateral payout (not plain `getPrice` or `getEquivalentAmount`).
+4. **Collateral ratio checks**: Ensures protector collateral meets minimum requirements.
+5. **Oracle status monitoring**: `getOracleInfo()` returns dual-feed status for frontend display.
+
+## Adding New Oracle Types
+
+The oracle system is extensible. To add a new oracle type:
+
+1. Implement the `IOracleFeed` interface
+2. Implement `getPrice(token)`, `decimals()`, and `description()`
+3. Register the feed with `CompositeOracle.setTokenOracleFeed()`
+4. Optionally configure as dual-feed with `setTokenOracleFeedDual()`
+5. Optionally implement circuit breaker functions for enhanced protection
+
+This modular design allows YieldShield to support new oracle sources as they become available without changes to core protocol logic.

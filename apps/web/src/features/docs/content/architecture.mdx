@@ -1,0 +1,94 @@
+import { MermaidPlaceholder } from "../_components/MermaidPlaceholder";
+
+# Architecture Overview
+
+This page provides a **high-level overview** of the YieldShield architecture: the main contracts (pools, factory, oracles, governance), how they interact, and the flow from token whitelisting through pool creation, deposits, yield accrual, and withdrawals. It serves as the entry point for understanding the system before examining individual components.
+
+## System Components
+
+The YieldShield protocol is built on a modular architecture with the following core components:
+
+### Shield Pool
+
+The **Shield Pool** is the fundamental building block of YieldShield. Each pool manages risk allocation and capital distribution for a specific pair of shielded and backing tokens. Pools handle deposits, withdrawals, yield distribution, and shield activation through a decentralized mechanism. They support **partial withdrawals** (`partialWithdrawInsured`) and **cancelable unlock** for protectors (`cancelUnlockProcess`).
+
+### Shield Pool Factory
+
+The **Factory** contract is responsible for creating and managing Shield Pool instances. It ensures proper initialization, maintains a registry of all active pools, and manages token whitelisting. All pools are deployed as upgradeable proxies, allowing for future improvements while maintaining state.
+
+### Oracle System
+
+The **Oracle System** provides reliable price feeds for all tokens in the YieldShield ecosystem. It uses a modular architecture with multiple oracle sources (Chainlink, Pyth Network, ERC4626 NAV) and includes circuit breakers and challenge mechanisms to protect against price manipulation.
+
+### YS Governor
+
+The **Governance** contract manages protocol-level parameters and upgrades through a decentralized voting mechanism. It uses OpenZeppelin's Governor pattern with timelock controls to ensure secure, transparent governance.
+
+### Pool Access Control
+
+The **Access Control** system allows pool creators to optionally restrict who can deposit and withdraw from their pools. This mechanism provides flexibility for private pools (e.g. KYC requirements) while maintaining the open nature of public pools.
+
+### Receipt NFTs
+
+**Receipt NFTs** represent all positions as tradeable ERC721 tokens. Each deposit mints a unique NFT containing position data on-chain, enabling positions to be transferred, sold on marketplaces, or used as collateral in other DeFi protocols.
+
+## Protocol Flow
+
+1. **Token Whitelisting**: Governance whitelists tokens that can be used in pools
+2. **Pool Creation**: Users create shield pools through the Factory contract, specifying shielded and backing tokens
+3. **Capital Allocation**: Protectors deposit collateral and receive [Receipt NFTs](/docs/architecture/receipt-nfts), shielded users deposit assets to be protected
+4. **Yield Generation**: Assets generate yield over time, which is shared between protectors (commission) and protocol (fees)
+5. **Shield Activation**: If a protected event occurs, users can withdraw their principal from the protector's collateral (or withdraw shielded tokens with yield when the asset is healthy)
+6. **Fee flow**: Yield is **accumulated** via `claimRewards`; protectors claim via `claimCommission`, pool creator and protocol via `payPoolFee` and `payProtocolFee`. See [Fee Structure](/docs/architecture/fee-structure).
+
+## Component Interactions
+
+<MermaidPlaceholder chart={`
+graph TB
+    Governance["YS Governor<br/>Governance & Timelock"]
+    Factory["Shield Pool Factory<br/>Creates & Manages<br/>Pool Instances"]
+    Pool["Shield Pool<br/>Core Shield Pool<br/>Deposits, Withdrawals, Shield Activation"]
+    NFTs["Receipt NFTs<br/>ERC721 Positions<br/>Shielded & Protector"]
+    Oracle["Oracle System<br/>CompositeOracle<br/>Price Routing"]
+    AccessControl["Pool Access<br/>Control<br/>Optional Restrictions"]
+    OracleFeeds["Oracle Feeds<br/>Chainlink, Pyth,<br/>ERC4626 NAV"]
+
+    Governance -->|Controls| Factory
+    Factory -->|Creates| Pool
+    Factory -->|Deploys| NFTs
+    Pool -->|Mints/Burns| NFTs
+    Pool -->|Uses| Oracle
+    Pool -->|Uses| AccessControl
+    Oracle -->|Routes to| OracleFeeds
+
+`}/>
+
+The diagram above illustrates how the core components interact:
+
+- **Factory** creates and manages **Pool** instances and deploys **Receipt NFT** contracts
+- **Pool** mints and burns **Receipt NFTs** to represent user positions
+- **Pool** uses **Oracle System** for token valuations and price queries
+- **Pool** uses **Access Control** for optional restrictions
+- **Oracle System** routes price queries to appropriate **Oracle Feeds** (Chainlink, Pyth, ERC4626)
+- **Governance** controls the **Factory** (token whitelisting, pool parameters)
+
+## Key Design Principles
+
+- **Upgradeability**: Core contracts use UUPS proxy pattern for future improvements
+- **Modularity**: Libraries and interfaces allow for flexible composition
+- **Security**: Multiple layers of access control, circuit breakers, and validation (see [Security Model](/docs/architecture/security-model))
+- **Capital Efficiency**: Optimized storage layouts and gas-efficient operations
+- **Transparency**: All operations are on-chain and verifiable
+
+## Documentation Structure
+
+This architecture section provides detailed documentation for each component:
+
+- **[Shield Pool](/docs/architecture/split-risk-pool)**: Core pool contract managing deposits, withdrawals, and yield distribution
+- **[Shield Pool Factory](/docs/architecture/contracts)**: Factory contract for pool creation and token management
+- **[Receipt NFTs](/docs/architecture/receipt-nfts)**: ERC721 tokens representing shielded and protector positions
+- **[Fee Structure](/docs/architecture/fee-structure)**: Yield distribution between protectors, pool creators, and protocol
+- **[Oracle System](/docs/architecture/oracle-system)**: Modular oracle architecture for reliable token pricing
+- **[YS Governor](/docs/architecture/ys-governor)**: Governance contract for protocol parameter management
+- **[Pool Access Control](/docs/architecture/pool-access-control)**: Access control interface for pool-level restrictions
+- **[Security Model](/docs/architecture/security-model)**: Access controls, circuit breakers, and protective mechanisms

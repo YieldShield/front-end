@@ -1,0 +1,119 @@
+# YS Governor
+
+Important protocol choices (which tokens are allowed, fee levels, upgrades, emergencies) are not set by a single team. They are **proposed and voted on by YS token holders**. The YS Governor runs that process: who can propose, how long voting lasts, how many votes are needed to pass, and how decided changes are delayed before they take effect. This page is for token holders and governance participants: _How do I have a say in the protocol, and how does a proposal become reality?_
+
+## Overview
+
+The YS Governor implements a complete governance system that allows YSToken holders to propose and vote on protocol changes. All proposals are subject to a timelock, ensuring that changes cannot be executed immediately and providing time for review.
+
+## Governance Components
+
+The Governor contract combines several OpenZeppelin extensions:
+
+- **Governor**: Base governance functionality
+- **GovernorCountingSimple**: Simple majority voting
+- **GovernorVotes**: Vote weighting based on token balance
+- **GovernorVotesQuorumFraction**: Quorum requirement (4%)
+- **GovernorTimelockControl**: Timelock integration for proposal execution
+
+## Voting Parameters
+
+The Governor is configured in code as follows. **Production deployments** may use longer delays (e.g. 1 day voting delay, 1 week voting period) as described in the whitepaper; the deployed bytecode for testnets may use shorter values.
+
+| Parameter              | Current implementation (e.g. testnets)         | Production (whitepaper) |
+| ---------------------- | ---------------------------------------------- | ----------------------- |
+| **Voting Delay**       | 600 seconds (10 minutes), reduced for testing  | 1 day                   |
+| **Voting Period**      | 1200 seconds (20 minutes), reduced for testing | 1 week                  |
+| **Proposal Threshold** | 1000 YS (1000 × 10^18)                         | 1000 YS                 |
+| **Quorum**             | 4%                                             | 4%                      |
+
+In `YSGovernor.sol`, `GovernorSettings(600, 1200, 1000 * 10**18)` and `GovernorVotesQuorumFraction(4)` are used. Always check the deployed contract for the live values.
+
+## Governance Token
+
+The Governor uses **YSToken** (ERC20Votes) for voting:
+
+- Token balance determines voting power
+- Uses snapshot-based voting (historical balances)
+- Supports delegation of voting power
+- Implements ERC20Permit for gasless approvals
+
+## Proposal Lifecycle
+
+1. **Proposal Creation**: Any address with at least the proposal threshold (1000 YS in the current implementation) can create a proposal
+2. **Voting Delay**: Time (e.g. 10 minutes in testnet, 1 day in production) passes before voting begins
+3. **Voting Period**: Token holders vote (e.g. 20 minutes in testnet, 1 week in production)
+4. **Quorum Check**: At least 4% of total supply must vote
+5. **Timelock Queue**: If passed, proposal is queued in the timelock
+6. **Execution**: After timelock delay, proposal can be executed
+
+## Timelock Integration
+
+All proposals are executed through a TimelockController:
+
+- Provides a delay between proposal approval and execution
+- Allows for review and potential cancellation
+- Ensures no immediate execution of governance decisions
+- Adds an extra layer of security
+
+## Clock Mode
+
+The Governor uses timestamp-based clock mode:
+
+- Voting periods are measured in seconds (not blocks)
+- More predictable across different networks
+- Compatible with various block times
+- Uses `block.timestamp` for all time calculations
+
+## Governance Functions
+
+The Governor can execute proposals that:
+
+- Update protocol parameters in the Factory
+- Add or remove tokens from the whitelist
+- Upgrade pool or factory implementations
+- Update governance timelock addresses
+- Modify fee structures
+- Pause/unpause protocol components
+
+## Proposal Structure
+
+Each proposal contains:
+
+- **Targets**: Array of contract addresses to call
+- **Values**: Array of ETH values to send (typically 0)
+- **Calldatas**: Array of function call data
+- **Description**: Human-readable description of the proposal
+
+## Voting Power
+
+Voting power is determined by:
+
+- Token balance at the time of proposal creation (snapshot)
+- Delegated voting power (if tokens are delegated)
+- Historical balance snapshots for past proposals
+
+## Security Features
+
+- **Quorum Requirement**: Prevents small groups from passing proposals
+- **Timelock Delay**: Provides time for review and potential cancellation
+- **Proposal Threshold**: Prevents spam proposals
+- **Voting Period**: Ensures adequate time for participation
+- **Snapshot Voting**: Prevents manipulation through token transfers during voting
+
+## Integration with Protocol
+
+The Governor controls:
+
+- **SplitRiskPoolFactory**: Token whitelisting, pool parameters
+- **Pool Upgrades**: Implementation contract updates
+- **Protocol Fees**: Fee rate and recipient updates
+- **Emergency Controls**: Pause/unpause functionality
+
+## Example Use Cases
+
+- Adding new tokens to the whitelist
+- Adjusting maximum commission rates
+- Updating pool implementation contracts
+- Changing protocol fee rates
+- Emergency protocol pauses

@@ -1,0 +1,138 @@
+# Shield Pool Guide
+
+This guide explains how to create and configure a shield pool on YieldShield using the dApp. Shield pools (implemented as `SplitRiskPool` contracts) pair a **shielded token** with a **backing token**: depositors of the shielded asset receive yield protection, and depositors of the backing asset provide collateral and earn commission from that yield. The following steps and parameters reflect how the underlying smart contracts work.
+
+## Prerequisites
+
+Before creating a shield pool:
+
+- **Web3 wallet**: Use MetaMask, WalletConnect, or another supported wallet.
+- **Network and gas**: Connect to the correct network and hold enough native token to pay for the creation transaction.
+- **Whitelisted tokens**: Both the shielded and the backing token must be **whitelisted** by protocol governance. Only tokens returned by the factory's `getWhitelistedTokens` can be used. If a token has a **minimum collateral ratio** when used as protector, your chosen collateral ratio must be at least that value; the UI uses each token's `minCollateralRatioBp` from the whitelist to enforce this.
+
+## Basis Points
+
+Rates and ratios in the pool are expressed in **basis points**. One basis point is 0.01%, and 10000 basis points equal 100%. For example, 1000 basis points is 10%, and 15000 is 150%.
+
+## Creating a Shield Pool
+
+### Step 1: Open the Create Pool Form
+
+1. In the YieldShield dApp, go to the **Pools** section.
+2. Open the create flow: click **Create Pool** or **Create First Pool** on the Pools page, or **Create New Pool** from the Dashboard.
+3. You will see the create pool form at **Pools > Create**.
+
+### Step 2: Choose the Shielded Token
+
+The **shielded token** is the yield-bearing asset that depositors want to protect. Its yield is shared between protectors (commission), the pool creator (pool fee), and the protocol (protocol fee).
+
+1. **From the dropdown**: Pick a whitelisted token. The UI fills the **Token Address** and **Symbol** from the whitelist.
+2. **Manual entry**: You can type the **Token Address** and **Symbol** yourself. The address must be whitelisted; the symbol must be 1 to 32 characters. The contract uses the symbol only for validation; the canonical symbol for the pool and for receipt NFTs is taken from the whitelist's token metadata.
+
+The shielded and backing tokens must be different. If you pick the same token for both, the UI will clear the other side when you change one.
+
+### Step 3: Choose the Backing Token
+
+The **backing token** is the yield-bearing asset used as collateral. Protectors deposit it and earn commission from shielded yield.
+
+1. **From the dropdown**: Pick a whitelisted token. The UI fills **Token Address** and **Symbol** from the whitelist. If that token has a minimum collateral ratio, the UI may raise the **Collateral Ratio** field to satisfy it.
+2. **Manual entry**: You can enter **Token Address** and **Symbol**. The address must be whitelisted; the symbol must be 1 to 32 characters. Again, the symbol is for validation only; the canonical symbol comes from the whitelist.
+
+The contract does not allow both tokens to be ERC4626 vaults that share the same underlying asset. The UI does not send such pairs to the contract.
+
+### Step 4: Set Pool Parameters
+
+These three values are **fixed at creation** and cannot be changed later.
+
+| Parameter            | Description                                                                                                                                | Bounds (basis points)                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Commission Rate**  | Share of shielded yield paid to protectors.                                                                                                | 100 (1%) to 5000 (50%).                                                                                                              |
+| **Pool Fee**         | Share of shielded yield paid to you as pool creator.                                                                                       | 0 (0%) to 2000 (20%).                                                                                                                |
+| **Collateral Ratio** | Required collateral (in backing token terms) relative to shielded deposits. Higher ratios mean more collateral per unit of shielded value. | 10000 (100%) to 50000 (500%). The minimum is the greater of 10000 and the backing token's `minCollateralRatioBp` from the whitelist. |
+
+The form shows **Total Fees** as commission + pool fee + protocol fee. The protocol fee (1% at creation) is set by the factory and is not configurable by you.
+
+### Step 5: Optional Information and Profile
+
+- **Pool Name** and **Description**: Stored off-chain and shown in the UI. They are not part of the pool contract. You can add or change them later on the pool page.
+- **Creator Profile** (name, logo URL): Also off-chain. It is used to display your identity as pool creator.
+
+### Step 6: Review and Submit
+
+1. Check that both tokens, the symbol fields, and the three pool parameters are correct. The **Create Pool** button stays disabled until the contract's validation rules are met.
+2. Confirm the transaction in your wallet. The dApp calls the factory's `createPool` with: shielded token, shielded symbol, backing token, backing symbol, commission rate, pool fee, and collateral ratio.
+3. After the transaction confirms, you are redirected to the Dashboard. The new pool is registered in the factory and appears in the pool list. Optionally, the dApp saves name, description, and creator profile in the background.
+
+### What Happens On-Chain
+
+The factory deploys a **pool proxy** (Shield Pool) and two **receipt NFT** contracts (Shielded and Protector). The pool is initialized with your chosen commission rate, pool fee, and collateral ratio, and with default limits: minimum deposit 10 wei, maximum single deposit 1000000 tokens (18 decimals), maximum TVL 10000000 tokens, minimum pool time 1 day, protector unlock duration 28 days, protocol fee 1%, and the factory's composite oracle and protocol fee recipient. The shielded token, backing token, commission rate, pool fee, collateral ratio, and your address as pool creator are **immutable** for the life of the pool.
+
+## Configuring the Pool After Creation
+
+### What the Pool Creator Can Change
+
+- **Access control**: As pool creator, you can set an optional access control contract so that only approved addresses may deposit or withdraw. By default the pool is public. To restrict access, call `setAccessControl` on the pool with a contract that implements `IPoolAccessControl`; use `address(0)` to turn restrictions off. If the dApp exposes this, it will be in the pool's settings or creator area. For the interface and behavior, see [Pool Access Control](/docs/architecture/pool-access-control).
+
+### What Governance Can Change
+
+Parameters such as minimum and maximum deposit, maximum TVL, minimum pool time, protector unlock duration, protocol fee and its recipient, price oracle, and the receipt NFT transfer lock periods can only be updated by **protocol governance** via the pool's `updatePoolConfig`, `setInsuredTransferLockPeriod`, and `setUnderwriterTransferLockPeriod`. The pool creator cannot change these.
+
+## Managing Your Pool
+
+### As Pool Creator
+
+From the pool page, open the **Creator** tab (when you are the pool creator):
+
+- **Pay pool fee**: Claim your accumulated pool fee (a share of shielded yield). The balance is shown when there is an amount to claim; you (or governance) call `payPoolFee` on the pool.
+- **Creator profile**: Update your display name and logo URL. This is stored off-chain.
+
+### Monitoring and Operations
+
+- **Total Value Locked (TVL)**: Shielded and backing balances are shown on the pool page. Deposits and withdrawals by users change these values.
+- **Deposits and withdrawals**: Shielded users deposit the shielded token and withdraw (as shielded or, under conditions, as backing token). Protectors deposit the backing token and withdraw after the unlock process. The pool enforces the configured limits and collateral rules.
+- **Fees and rewards**: Yield on shielded positions is split into commission (protectors), pool fee (you), and protocol fee. Protectors claim via `claimCommission`; you claim via `payPoolFee`. Shielded users can trigger fee accrual with `claimRewards`. For the full fee logic, see [Fee Structure](/docs/architecture/fee-structure).
+
+## Best Practices
+
+### Choosing Tokens and Ratios
+
+- Use only **whitelisted** tokens. If the backing token has a `minCollateralRatioBp` above 100%, the UI and contract will require at least that collateral ratio.
+- Pick a shielded/backing pair that makes economic sense and, for vault tokens, ensure they do not share the same underlying (the contract blocks that).
+- Choose a **collateral ratio** that fits the risk of the backing asset: higher for more volatility, while respecting the token's minimum.
+
+### Understanding What Is Fixed
+
+- **Commission rate**, **pool fee**, and **collateral ratio** are set at creation and cannot be changed. Consider the long-term impact before submitting.
+- The **shielded token**, **backing token**, and **pool creator** are immutable.
+
+### Access Control
+
+- Leave the pool **public** (no access control) unless you need KYC, whitelists, or other restrictions. Use `setAccessControl` only when required.
+
+### Governance and Whitelisting
+
+- Deposit limits, TVL cap, timings, protocol fee, oracle, and transfer locks are **governance-only**. For how tokens are whitelisted and how `minCollateralRatioBp` is set, see the Factory and governance documentation; a separate guide on token whitelisting is intended.
+
+## Troubleshooting
+
+### Pool Creation Fails
+
+- **"Token not whitelisted"**: Both token addresses must be in the factory's whitelist. Check `getWhitelistedTokens` and `tokenInfo` for the token.
+- **"Same underlying asset"**: The two tokens cannot both be ERC4626 vaults with the same underlying. Choose a different pair.
+- **"Collateral below token minimum"**: The collateral ratio is below the backing token's `minCollateralRatioBp`. Increase the collateral ratio to at least that value.
+- **"Invalid commission rate" / "Invalid pool fee" / "Invalid collateral ratio"**: One of the three parameters is outside the allowed bounds. Use the ranges in the table in Step 4.
+- **"Max pools exceeded"**: The factory has reached its pool limit (1000). Creation is not possible until governance or system changes.
+- **Transaction reverts (oracle, fee recipient, implementation)**: The factory's `compositeOracle`, `defaultProtocolFeeRecipient`, or pool implementation may be unset. These are protocol-level; contact the protocol operators.
+
+### Other Issues
+
+- **"Insufficient deposit" / "Deposit too large" / "TVL limit exceeded"**: The pool's current `poolConfig` (min/max deposit, max TVL) is enforced. Those values are set by governance; the pool creator cannot change them.
+- **Withdrawals or deposits blocked**: If the pool uses access control, your address must be allowed by the access control contract. If the pool is paused, deposits and certain withdrawals are disabled; fee and reward claims may still work. See [Security Model](/docs/architecture/security-model).
+
+## Further Reading
+
+- [Architecture Overview](/docs/architecture): System components and flow.
+- [Shield Pool](/docs/architecture/split-risk-pool): Pool contract behavior, deposits, withdrawals, and accounting.
+- [Fee Structure](/docs/architecture/fee-structure): How yield is split and how to claim.
+- [Pool Access Control](/docs/architecture/pool-access-control): Restricting who can deposit and withdraw.
+- [Contracts (Factory)](/docs/architecture/contracts): Factory, `createPool`, and token whitelist.

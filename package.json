@@ -1,0 +1,22 @@
+{
+  "name": "yieldshield-lite",
+  "version": "0.1.0",
+  "private": true,
+  "description": "IPFS-first YieldShield frontend",
+  "scripts": {
+    "dev": "npm run dev --workspace @yieldshield-lite/web",
+    "build": "npm run build --workspace @yieldshield-lite/web",
+    "preview": "npm run preview --workspace @yieldshield-lite/web",
+    "points:export:sample": "npm run export:local --workspace @yieldshield-lite/points-sqd -- --input packages/points-sqd/examples/actions.sample.json --output /tmp/yieldshield-lite-points --chain-id 421614",
+    "points:export:sample:web": "npm run export:local --workspace @yieldshield-lite/points-sqd -- --input packages/points-sqd/examples/actions.sample.json --output apps/web/public/points-snapshots --chain-id 421614 --from-block 235206800 --finalized-block 235206900 --finalized-block-timestamp 2026-04-09T10:05:00.000Z --generated-at 2026-04-09T10:05:00.000Z",
+    "typecheck": "npm run typecheck --workspace @yieldshield-lite/web"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@11.9.0"
+}

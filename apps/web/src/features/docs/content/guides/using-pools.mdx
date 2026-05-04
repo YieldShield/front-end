@@ -1,0 +1,171 @@
+# Using Pools: Getting Protection and Protecting
+
+This guide explains how to **get protection** (deposit as a shielded user) and how to **be a protector** (deposit as a protector) on YieldShield. Both flows happen on the same pool page: you pick the **Shielded** or **Protector** tab, deposit the matching token, and manage your positions. The dApp will suggest suitable pools; you can also browse the **Pools** list or **Dashboard** and open a pool to see its pair of shielded and backing tokens, fees, and capacity.
+
+## Prerequisites
+
+- **Web3 wallet**: MetaMask, WalletConnect, or another supported wallet.
+- **Network and gas**: Connect to the correct network and hold enough native token for transactions.
+- **Tokens**: To get protection, you need the pool's **shielded token** (the yield-bearing asset you want to protect). To protect, you need the pool's **backing token** (the asset used as collateral).
+
+## Basis Points
+
+Rates in pools are in **basis points**. One basis point is 0.01%, and 10000 basis points equal 100%. For example, 1000 bp is 10%. See the [Shield Pool Guide](/docs/guides/shield-pool) for more on pool parameters.
+
+## Receipt NFTs
+
+Each deposit mints a **Receipt NFT** that represents your position. You can transfer it, sell it, or use it as collateral elsewhere; the rights to withdraw and to claim follow the NFT, so if you sell it, the new owner gets those rights.
+
+### ShieldReceiptNFT
+
+When you deposit as a **shielded** user, you receive a **ShieldReceiptNFT**. In simple terms it stores:
+
+- **Amount**: The shielded tokens in the position (it can change when fees are accrued).
+- **Deposit time**: When you deposited (used for the minimum pool time if you withdraw as backing token).
+- **Value at deposit**: The USD value of your deposit at that time (used when you withdraw as backing token, i.e. for a shield activation).
+- **Collateral amount**: The share of backing tokens allocated to back this position (used to cap the shield activation).
+
+The NFT is updated when you trigger **Claim Rewards**: fees are taken from the position's amount and the stored amount goes down. Withdrawals and partial withdrawals burn or replace the NFT as needed.
+
+### ProtectorReceiptNFT
+
+When you deposit as a **protector**, you receive a **ProtectorReceiptNFT**. In simple terms it stores:
+
+- **Amount**: The backing tokens in the position.
+- **Deposit time**: When you deposited.
+- **Unlock request time**: If you started the unlock process, the time when the time lock expires (0 if you have not started). It does not reserve liquidity for your position.
+
+Commission is **not** stored in the NFT. It is tracked in the pool and claimed via **Claim Commission**; the claimable amount effectively follows the NFT, so the current owner can always claim. For more detail, see [Receipt NFTs](/docs/architecture/receipt-nfts).
+
+---
+
+## Part I: Getting Protection (Shielded)
+
+### Step 1: Open the Pool and Shielded Tab
+
+1. Go to a pool (from a suggestion, the **Pools** list, or the **Dashboard**).
+2. Open the pool page and select the **Shielded** tab.
+
+### Step 2: Deposit Shielded Assets
+
+1. Enter the **amount** of shielded token to deposit. The UI shows your balance and a **MAX** button. If the pool has limited capacity, a **Pool-Max** (or similar) shows the maximum you can deposit.
+2. Click **Deposit Shielded Asset**. The dApp may ask you to **approve** the token first; confirm that transaction, then confirm the deposit. If there are no protectors or no capacity, the deposit button is disabled.
+3. After the transaction confirms, you receive a **ShieldReceiptNFT** for that position. You can have multiple positions (multiple NFTs) in the same pool.
+
+### Step 3: Withdraw
+
+1. In the **Withdraw** area, select the **position** (NFT) you want to withdraw from.
+2. Choose **Withdraw as**:
+   - **Shielded token (original asset)**: You get your position back in the shielded token. Yield is included minus fees (commission, pool fee, protocol fee). You can withdraw **immediately**. **Partial withdrawals** are allowed: enter an amount smaller than the position; the remainder stays in a new NFT. The remainder must be at least the pool's minimum deposit.
+   - **Backing token (shield activation)**: You receive the value of your deposit in **backing** tokens, without yield. This is the **shield activation**: you are effectively taking collateral that was backing your position. It is only available after a **minimum pool time** (set by the pool, e.g. 1 day). **Only the full position** can be withdrawn; partial is not supported for shield activation.
+3. For withdrawals as shielded token, you can leave the amount empty to withdraw the full position, or enter an amount for a partial withdrawal.
+4. Click **Withdraw** or **Partial Withdraw** (and **as** the chosen asset). After the transaction, the NFT is burned (or replaced by a new one for the remainder in a partial withdrawal).
+
+### Step 4: Claim Rewards (Fee Accrual)
+
+**Claim Rewards** does not send you tokens directly. It triggers the **calculation and accrual** of fees from the yield on your shielded position: commission goes to protectors, pool fee to the creator, protocol fee to the protocol. Your position's amount is reduced by the fee share; that needs to happen before you withdraw so that the correct amounts are paid out.
+
+**Claim Rewards** appears in the **Protector** and **Creator** tabs (it applies to all shielded positions in the pool). There is a **24-hour cooldown per position** between claims. You or anyone else can trigger it; if you want to accrue fees before withdrawing, use **Claim Rewards** in the **Protector** tab. For the full fee logic, see [Fee Structure](/docs/architecture/fee-structure).
+
+---
+
+## Part II: Being a Protector
+
+### Step 1: Open the Pool and Protector Tab
+
+1. Go to a pool and select the **Protector** tab.
+
+### Step 2: Deposit Protector Assets
+
+1. Enter the **amount** of backing token to deposit. The UI shows your balance and **MAX**.
+2. Click **Deposit Protector Asset**. The dApp may ask you to **approve** the token first; confirm, then confirm the deposit.
+3. After the transaction confirms, you receive a **ProtectorReceiptNFT**. You can have multiple protector positions (multiple NFTs) in the same pool.
+
+### Step 3: Withdraw
+
+Your position is split into:
+
+- **Currently withdrawable**: The part that is not currently needed as collateral for shielded deposits. This is shared pool headroom, not a reserved per-position amount, so it can change before your transaction confirms.
+- **Time-locked**: The part that is still behind the unlock timer. To withdraw it, you must **Start Unlock Process**, wait until the **unlock time** has passed, then withdraw. Unlock removes the time gate only; you still need current pool headroom. You can cancel an unlock before it completes.
+
+In the UI:
+
+1. **Select** the protector position (NFT). The UI shows the total amount and the **currently withdrawable** amount.
+2. Enter the **amount** to withdraw.
+3. Click **Withdraw Protector Asset**. If you request more than the currently withdrawable amount, the transaction fails. Even after unlock has matured, another protector withdrawal or a utilization change can reduce the amount that is withdrawable before your transaction lands.
+4. **Start Unlock Process**: If you have a **time-locked** amount and have not yet started unlock, click **Start Unlock Process**. After that, the UI shows **Unlock in progress** and the time left, or **Unlock complete** when the time gate has expired. You can cancel an unlock before it completes.
+
+### Step 4: Claim Commission
+
+Commission is your share of the yield earned by shielded positions. It is paid in **shielded** tokens.
+
+1. In the **Claim Commission** area, the UI shows **Available Commission** for the selected protector position when it is greater than zero.
+2. Click **Claim Commission**. The shielded tokens are sent to your wallet. The claimable amount follows the NFT: if you transfer the NFT, the new owner can claim.
+
+### Step 5: Claim Rewards
+
+**Claim Rewards** in the **Protector** tab (and in the **Creator** tab) triggers fee accrual for all shielded positions in the pool. That causes commission, pool fee, and protocol fee to be calculated and accumulated; your commission becomes claimable via **Claim Commission** as yield is accrued. You do not need to hold a shielded position to use **Claim Rewards**; anyone can call it. There is a 24-hour cooldown **per shielded position**, not per protector. For details, see [Fee Structure](/docs/architecture/fee-structure).
+
+---
+
+## Managing Your Positions
+
+### Shielded
+
+- **Several positions**: Each deposit creates a new ShieldReceiptNFT. Withdraw and trigger **Claim Rewards** per position as needed.
+- **Partial withdrawal**: Only when **Withdraw as** shielded token. The remainder must be at least the pool's minimum deposit.
+- **Shield activation**: Only after the minimum pool time; full position only, as backing token.
+
+### Protector
+
+- **Several positions**: Each deposit creates a new ProtectorReceiptNFT. Commission and unlock are per position; select the position before claiming or starting unlock.
+- **Currently withdrawable vs time-locked**: Withdraw the currently withdrawable part anytime. For the time-locked part, start unlock, wait until the unlock time, then withdraw. Even after unlock, live pool headroom still determines how much can leave immediately.
+
+---
+
+## Best Practices
+
+### Shielded
+
+- Check that the pool has **protector capacity** (and, if shown, **Pool-Max**) before depositing.
+- If you might want to use the **shield activation** (withdraw as backing token), be aware of the pool's **minimum pool time**.
+- **Claim Rewards** has a 24-hour cooldown per position; if you want fees accrued before a withdrawal, trigger it in the **Protector** tab in time.
+
+### Protector
+
+- **Currently withdrawable** and **time-locked** depend on how much shielded value the pool has and on the collateral ratio. Utilization can change, and the withdrawable amount is shared across protectors rather than reserved for each NFT.
+- If you plan to exit the time-locked part, **Start Unlock Process** in advance; the unlock duration is set per pool (e.g. 28 days). When the timer finishes, submit promptly if current pool headroom matters to you.
+- **Claim Commission** when the amount is meaningful to you; it is paid in shielded tokens.
+
+---
+
+## Troubleshooting
+
+### Shielded
+
+- **Deposit button disabled**: The pool may have no protectors or no capacity. You need protector collateral to deposit as shielded.
+- **"Insufficient backing token balance"** (or similar): The pool does not have enough backing value to back your deposit; try a smaller amount or another pool.
+- **"Insufficient deposit" / "Deposit too large" / "TVL limit exceeded"**: Your amount is below the pool's minimum, above the maximum per deposit, or would exceed the pool's TVL limit. Adjust the amount.
+- **Cannot withdraw as backing token**: The **minimum pool time** has not passed. Check the pool's settings or withdraw as shielded token instead.
+- **"Partial withdrawal below minimum"**: The amount you want to leave in the position would be below the pool's minimum deposit. Withdraw less or withdraw the full position.
+
+### Protector
+
+- **"Insufficient unlocked tokens"**: You are trying to withdraw more than is currently withdrawable. Some of the position may still be time-locked, or shared pool headroom may have changed since you filled in the form.
+- **"Unlock process not over"** (or similar): The unlock time has not passed yet. Wait until the UI shows **Unlock complete**, then re-check the currently withdrawable amount before submitting.
+- **"Insufficient token balance"**: The amount is above your position size or the pool's available balance. Check the selected position and the amount.
+
+### General
+
+- **Approval fails**: Ensure you are connected with the correct account and that the token is not paused. If the error mentions the approver, try reconnecting the wallet.
+- **Deposits or withdrawals blocked**: The pool may use **access control** and restrict who can deposit or withdraw. See [Pool Access Control](/docs/architecture/pool-access-control). The pool could also be **paused**; in that case, deposits and withdrawals are disabled, but fee and commission claims may still work.
+
+---
+
+## Further Reading
+
+- [Receipt NFTs](/docs/architecture/receipt-nfts): Structure and behavior of Shielded and Protector NFTs.
+- [Fee Structure](/docs/architecture/fee-structure): How yield is split and how commission, pool fee, and protocol fee are accrued and paid.
+- [Shield Pool](/docs/architecture/split-risk-pool): Pool behavior, deposits, withdrawals, and accounting.
+- [Pool Access Control](/docs/architecture/pool-access-control): Optional restrictions on who can deposit and withdraw.
+- [Shield Pool Guide](/docs/guides/shield-pool): How to create and configure a shield pool.

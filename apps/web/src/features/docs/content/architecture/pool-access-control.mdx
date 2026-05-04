@@ -1,0 +1,150 @@
+# Pool Access Control
+
+**Pool creators** can optionally **limit who may deposit or withdraw** from their pool. This page is for creators building restricted pools (e.g. KYC, whitelists) and for developers implementing the permission contract. By default, pools are public; access control is only enforced when a contract is set.
+
+## Overview
+
+By default, all pools are public and anyone can deposit and withdraw. However, pool creators can optionally set an access control contract that enforces custom permission logic. This enables use cases such as:
+
+- Private pools for specific communities
+- KYC-compliant pools
+- Whitelist-based access
+- Time-based restrictions
+- Custom business logic
+
+## IPoolAccessControl Interface
+
+The access control system is defined by the `IPoolAccessControl` interface, which specifies four permission checks:
+
+### canDepositShielded
+
+Checks if an account can deposit shielded assets into the pool.
+
+```solidity
+function canDepositInsured(address account) external view returns (bool)
+```
+
+### canWithdrawShielded
+
+Checks if an account can withdraw shielded assets from the pool.
+
+```solidity
+function canWithdrawInsured(address account) external view returns (bool)
+```
+
+### canDepositProtector
+
+Checks if an account can deposit protector assets (collateral) into the pool.
+
+```solidity
+function canDepositUnderwriter(address account) external view returns (bool)
+```
+
+### canWithdrawProtector
+
+Checks if an account can withdraw protector assets from the pool.
+
+```solidity
+function canWithdrawUnderwriter(address account) external view returns (bool)
+```
+
+## Optional Enforcement
+
+Access control is **optional**:
+
+- If `accessControl` is set to `address(0)`, all checks pass (public pool)
+- If `accessControl` is set to a contract address, all operations check permissions
+- Pool creator can change or remove access control at any time
+
+## Integration with Shield Pool
+
+The Shield Pool integrates access control checks into all deposit and withdraw operations:
+
+### Deposit Operations
+
+- **depositInsuredAsset**: Checks `canDepositInsured(msg.sender)` before allowing deposit
+- **depositUnderwriteAsset**: Checks `canDepositUnderwriter(msg.sender)` before allowing deposit
+
+### Withdraw Operations
+
+- **insuredWithdraw**: Checks `canWithdrawInsured(msg.sender)` before allowing withdrawal
+- **underwriterWithdraw**: Checks `canWithdrawUnderwriter(msg.sender)` before allowing withdrawal
+
+### Access Control Management
+
+- **setAccessControl(newAccessControl)**: Pool creator can set or update the access control contract. Use `address(0)` to disable (public pool).
+- Only the pool creator (POOL_CREATOR) can call this function.
+- The pool validates all four `IPoolAccessControl` hooks before accepting a new contract; an invalid or partial implementation reverts with `InvalidAccessControlAddress`.
+- Emits `AccessControlUpdated` event when changed.
+
+## Implementation Flexibility
+
+The interface allows for various implementation strategies:
+
+- **Whitelist-based**: Simple allow/deny list
+- **Role-based**: Different roles with different permissions
+- **Time-based**: Restrictions based on time windows
+- **Token-gated**: Require holding specific tokens
+- **KYC-based**: Integration with KYC providers
+- **Custom Logic**: Any arbitrary permission logic
+
+## Example Use Cases
+
+### Private Pool
+
+A pool creator wants to create a pool only for members of their DAO:
+
+- Deploy an access control contract that checks DAO membership
+- Set the contract address in the pool
+- Only DAO members can deposit/withdraw
+
+### KYC-Compliant Pool
+
+A pool needs to comply with regulatory requirements:
+
+- Deploy an access control contract that checks KYC status
+- Integrate with a KYC provider
+- Only verified users can participate
+
+### Whitelist Pool
+
+A pool creator wants to manually approve participants:
+
+- Deploy a simple whitelist contract
+- Manually add approved addresses
+- Only whitelisted addresses can participate
+
+## Dynamic Updates
+
+Access control contracts can implement dynamic permission updates:
+
+- Permissions can change over time
+- Accounts can be added or removed from whitelists
+- Roles can be granted or revoked
+- The pool automatically uses the latest permission state
+
+## Gas Efficiency
+
+Access control checks are view functions, making them gas-efficient:
+
+- No state changes during permission checks
+- Can be called off-chain for UI validation
+- Only adds gas cost when actually enforcing restrictions
+
+## Security Considerations
+
+- Access control contracts should be audited if handling sensitive logic
+- Pool creators should carefully consider their access control implementation
+- Removing access control (setting to address(0)) makes the pool public immediately
+- Access control applies to both deposits and withdrawals, so users should treat creator-controlled gate changes as part of the pool's trust model
+
+## Design Philosophy
+
+The access control system follows the principle of **optional complexity**:
+
+- Simple by default (public pools)
+- Powerful when needed (custom access logic)
+- Flexible implementation (any logic can be encoded)
+- Non-breaking (can be added or removed at any time)
+
+This design allows YieldShield to support both open, permissionless pools and private, restricted pools within the same protocol.

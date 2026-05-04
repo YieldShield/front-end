@@ -1,0 +1,65 @@
+import { FeatureCard } from "../_components/FeatureCard";
+import { MermaidPlaceholder } from "../_components/MermaidPlaceholder";
+
+<FeatureCard type="claim-process" />
+
+# Fastest Shield Activation
+
+YieldShield eliminates the need for claim assessment, validation, or external decision-making through its tranche-based system with built-in economic incentives. Unlike traditional protection and existing DeFi protection protocols, YieldShield requires no claim process, no KYC verification, no oracle-based decisions, and no DAO governance votes. The protocol is completely trustless: users exercise their shield by simply choosing which asset to withdraw.
+
+## How It Works
+
+YieldShield's shield activation mechanism operates through tradeable [ERC721 receipt NFTs](/docs/architecture/receipt-nfts) that represent positions in shield pools. Each position is uniquely identified by a `tokenId`. When you need to access your funds, you have two options:
+
+1. **Withdraw Your Original Asset with Yield**: If your shielded asset retains its value, you withdraw your original deposit plus all earned yield (minus fees). This option is executed immediately through the smart contract.
+2. **Activate Shield**: If your shielded asset has lost value, you withdraw the collateral backing your position. You receive your principal back (based on the original value at deposit time) without the yield component, ensuring you are made whole.
+
+<MermaidPlaceholder
+  chart={`
+flowchart TD
+    A[User Holds ERC721 Receipt NFT<br/>Representing Shielded Position] --> B{User Chooses<br/>Withdrawal Option}
+
+    B -->|Option 1| C[Withdraw Original Asset]
+    B -->|Option 2| D[Activate Shield]
+
+    C --> E[Smart Contract Executes]
+    E --> F[Receive: Original Deposit<br/>+ Earned Yield]
+    F --> G[Transaction Complete]
+
+    D --> H[Smart Contract Executes]
+    H --> I[Receive: Principal Amount<br/>Based on Original Value<br/>No Yield Component]
+    I --> J[Transaction Complete]
+
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style C fill:#e8f5e9
+    style D fill:#fce4ec
+    style E fill:#f3e5f5
+    style H fill:#f3e5f5
+    style F fill:#c8e6c9
+    style I fill:#f8bbd0
+    style G fill:#c8e6c9
+    style J fill:#f8bbd0
+
+`}
+/>
+
+The choice is yours, and the execution is automatic. There is no assessment period, no waiting for approvals, and no external validation required.
+
+## Trustless at its Core
+
+Traditional protection models require centralized claim assessors to determine claim validity. Existing DeFi protection protocols often depend on oracle updates to detect losses or DAO governance to approve claims. Both approaches introduce delays, centralization risks, and require trust in third parties.
+
+YieldShield's [NFT-based system](/docs/architecture/receipt-nfts) eliminates these dependencies entirely. The economic incentives built into the protocol ensure that users naturally choose the optimal withdrawal option based on the actual state of their assets. If a shielded asset has lost value, users will withdraw collateral to protect their principal. If the asset is performing well, users will withdraw their shielded token to capture yield. The market mechanism itself determines claim validity through user choice, making the system completely trustless and instant.
+
+## No Delays, No Barriers
+
+YieldShield's shield activation process operates without any of the traditional barriers:
+
+- **No Oracle Update Delays**: The protocol does not wait for external price feeds to determine asset values
+- **No DAO Voting Requirements**: No governance delays or voting periods to approve claims
+- **No Manual Claim Assessors**: No third-party evaluation or human judgment required
+- **No KYC Processes**: No identity verification or compliance checks needed
+- **No Legal Paperwork**: All terms are enforced by smart contracts on-chain
+
+The result is an instant, trustless shield activation process that puts control entirely in the hands of users while maintaining complete transparency and verifiability on-chain.

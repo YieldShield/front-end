@@ -1,0 +1,223 @@
+# Receipt NFTs
+
+When you deposit as a shielded user or a protector, you receive an **NFT**, a unique digital receipt that represents your position. That NFT is yours to hold, transfer, or use elsewhere; it proves your stake and what you can withdraw. This page describes what information each receipt holds, how transfer locks work, and how they fit into the wider DeFi ecosystem (e.g. trading, collateral). _What do I actually get when I deposit, and what can I do with it?_
+
+## Overview
+
+The protocol uses two NFT contracts to represent positions:
+
+- **ShieldReceiptNFT**: Represents shielded deposits seeking protection
+- **ProtectorReceiptNFT**: Represents protector collateral providing protection
+
+Both contracts extend OpenZeppelin's ERC721 implementation, ensuring security and standard compliance. Positions can be transferred, sold on NFT marketplaces, or used as collateral in other DeFi protocols.
+
+## ShieldReceiptNFT
+
+### Position Data
+
+Each shielded position NFT stores the following on-chain:
+
+| Field              | Type    | Description                                                                                                              |
+| ------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `amount`           | uint256 | Current shielded token balance (reduces as fees are claimed)                                                             |
+| `depositTime`      | uint64  | Timestamp when deposit was made                                                                                          |
+| `valueAtDeposit`   | uint256 | USD value at deposit time (for cross-asset withdrawals); updated on fee claims to the new baseline for yield calculation |
+| `collateralAmount` | uint256 | Original collateral in backing token terms (for cross-asset withdrawal cap)                                              |
+| `lastFeeClaimTime` | uint64  | Last time fees were calculated                                                                                           |
+| `isWithdrawn`      | bool    | Whether the position has been withdrawn                                                                                  |
+
+### Transfer Lock
+
+Shielded NFTs have a **1 day** transfer lock by default:
+
+- Prevents immediate flipping of positions
+- Lock period starts from `depositTime`
+- Configurable by governance (max 30 days)
+- Minting and burning are always allowed
+
+```solidity
+// Transfer reverts if lock period hasn't passed
+if (block.timestamp < pos.depositTime + transferLockPeriod) {
+    revert TransferLocked(unlockTime);
+}
+```
+
+### Key Functions
+
+- `mint(to, amount, valueAtDeposit, collateralAmount)`: Called by pool when user deposits shielded assets
+- `mintWithDepositTime(to, amount, valueAtDeposit, collateralAmount, originalDepositTime)`: Used for `partialWithdrawInsured` to mint the remainder with the **original** `depositTime` preserved
+- `burn(tokenId)`: Called by pool when user withdraws; deletes `positions[tokenId]`
+- `getPosition(tokenId)`: Returns full position data
+- `updatePosition(tokenId, newAmount, newValue, newCollateralAmount, newLastFeeClaimTime)`: Pool updates position after fee accrual (e.g. in `_calculateAndAccumulateFees`)
+
+## ProtectorReceiptNFT
+
+### Position Data
+
+Each protector position NFT stores only:
+
+| Field               | Type    | Description                                                                                                         |
+| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `amount`            | uint256 | Total backing tokens deposited                                                                                      |
+| `depositTime`       | uint64  | Timestamp when deposit was made                                                                                     |
+| `unlockRequestTime` | uint64  | Time when unlock **completes** (0 = not started). Set by `startUnlockProcess` to `block.timestamp + unlockDuration` |
+
+**Commission is not stored in the NFT.** It is tracked in the pool (rewards-per-share pattern: `rewardPerShareAccumulated`, `rewardDebt`, `commissionsClaimed` per `tokenId`) and claimed via the pool's `claimCommission(tokenId)`. On transfer, the **new owner** can claim; the claimable amount effectively follows the NFT.
+
+### Transfer Lock
+
+Protector NFTs have a **28 day** transfer lock by default:
+
+- Longer lock reflects the commitment of providing protection
+- Configurable by governance (max 90 days)
+- Lock period starts from `depositTime`
+
+### Key Functions
+
+- `mint(to, amount)`: Called by pool when user deposits protector assets
+- `burn(tokenId)`: Called by pool when user withdraws; deletes `positions[tokenId]`
+- `getPosition(tokenId)`: Returns full position data
+- `updateAmount(tokenId, newAmount)`: Pool-only; used on partial protector withdrawal
+- `setUnlockRequestTime(tokenId, time)`: Pool-only; used by `startUnlockProcess` and `cancelUnlockProcess`
+
+## NFT Lifecycle
+
+### Minting (Deposit)
+
+```
+User deposits tokens -> Pool validates -> NFT minted -> Position stored
+```
+
+1. User calls `depositInsuredAsset()` or `depositUnderwriteAsset()` on the pool
+2. Pool validates deposit amount, TVL limits, and access control
+3. Pool calls `mint()` on the appropriate NFT contract
+4. NFT contract stores position data and mints token to user
+5. User receives unique `tokenId`
+
+### Burning (Withdrawal)
+
+```
+User requests withdrawal -> Pool validates -> NFT burned -> Tokens transferred
+```
+
+1. User calls `insuredWithdraw(tokenId, preferredAsset, minAmountOut)`, `partialWithdrawInsured(...)`, or `underwriterWithdraw(tokenId, amount, preferredAsset, minAmountOut)`
+2. Pool validates ownership and withdrawal conditions
+3. Pool calculates final amounts (with fees/commission)
+4. Pool calls `burn(tokenId)` on NFT contract
+5. Position data is deleted (gas refund)
+6. Tokens transferred to user
+
+## ERC721 Compatibility
+
+Both NFT contracts implement the full ERC721 standard:
+
+- `balanceOf(address)`: Number of positions owned
+- `ownerOf(tokenId)`: Owner of a specific position
+- `transferFrom()`: Transfer position (subject to lock)
+- `safeTransferFrom()`: Safe transfer with receiver check
+- `approve()` / `setApprovalForAll()`: Delegation support
+
+### Enumeration
+
+The contracts support enumeration for easy position discovery:
+
+- `tokenOfOwnerByIndex(owner, index)`: Get user's nth position
+- Iterate through all positions for a user
+
+## Integration Opportunities
+
+### NFT Marketplaces
+
+Receipt NFTs can be listed on marketplaces like OpenSea:
+
+- Sell shielded positions with accumulated yield
+- Trade protector positions (claimable commission follows the NFT; claim via the pool's `claimCommission`)
+- Price discovery for protection positions
+
+### DeFi Composability
+
+Receipt NFTs enable advanced DeFi strategies:
+
+- **Collateral**: Use positions as collateral in lending protocols
+- **Fractionalization**: Split large positions into smaller shares
+- **Derivatives**: Build options or futures on position values
+
+### Position Aggregators
+
+Build aggregator interfaces that:
+
+- Display all positions across multiple pools
+- Calculate total portfolio value
+- Batch operations across positions
+
+## Security Considerations
+
+### Pool-Only Operations
+
+Only the associated pool contract can:
+
+- Mint new positions
+- Burn positions on withdrawal
+- Update position data
+
+This is enforced by the `onlyPool` modifier, preventing unauthorized position manipulation.
+
+### One-Time Pool Binding
+
+The pool address can only be set once during deployment:
+
+```solidity
+function setPool(address _pool) external onlyOwner {
+    if (pool != address(0)) revert PoolAlreadySet();
+    pool = _pool;
+}
+```
+
+### Transfer Lock Limits
+
+Maximum transfer lock periods are enforced:
+
+- Shielded: 30 days maximum
+- Protector: 90 days maximum
+
+This prevents governance from setting unreasonably long locks.
+
+## Events
+
+Both NFT contracts emit events for off-chain indexing:
+
+```solidity
+// ShieldReceiptNFT
+event ShieldNFTMinted(address indexed to, uint256 indexed tokenId, uint256 amount, uint256 valueAtDeposit);
+event ShieldNFTBurned(uint256 indexed tokenId);
+
+// ProtectorReceiptNFT
+event ProtectorNFTMinted(address indexed to, uint256 indexed tokenId, uint256 amount);
+event ProtectorNFTBurned(uint256 indexed tokenId);
+
+// Both
+event ParameterUpdated(string indexed parameter, uint256 value);
+```
+
+## Querying Positions
+
+### On-Chain
+
+```solidity
+// Get position data
+ShieldedPosition memory pos = shieldNFT.getPosition(tokenId);
+
+// Check ownership
+address owner = shieldNFT.ownerOf(tokenId);
+
+// Get user's position count
+uint256 count = shieldNFT.balanceOf(userAddress);
+```
+
+### Off-Chain (Events)
+
+Index `ShieldNFTMinted` and `ProtectorNFTMinted` events to track:
+
+- All positions created in a pool
+- Historical deposit values
+- Position ownership changes (via ERC721 `Transfer` events)

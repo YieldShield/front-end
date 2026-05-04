@@ -1,0 +1,421 @@
+import { MermaidPlaceholder } from "../../_components/MermaidPlaceholder";
+
+# Security Model
+
+YieldShield is built with **several layers of protection**: who can change critical settings, how the protocol reacts to bad or stale prices, how upgrades and pauses work, and how your withdrawals are guarded against front-running or unexpected price moves. This page gives both a readable overview of those layers and the technical details for auditors and integrators. _How does the protocol protect my funds and what happens in an emergency?_
+
+## Security Layers
+
+<MermaidPlaceholder
+  chart={`
+flowchart TB
+    subgraph Layer1["Layer 1: Access Control"]
+        Governance[Governance Timelock]
+        Owner[Contract Owner]
+        PoolCreator[Pool Creator]
+    end
+
+    subgraph Layer2["Layer 2: Runtime Protection"]
+        Pausable[Pausable]
+        Reentrancy[Reentrancy Guard]
+        Validation[Input Validation]
+    end
+
+    subgraph Layer3["Layer 3: Oracle Security"]
+        CircuitBreaker[Circuit Breakers]
+        Staleness[Staleness Checks]
+        L2Sequencer[L2 Sequencer Checks]
+    end
+
+    subgraph Layer4["Layer 4: Upgradeability"]
+        UUPS[UUPS Proxy Pattern]
+        TimelockUpgrade[Timelock-Protected Upgrades]
+    end
+
+    Layer1 --> Layer2
+    Layer2 --> Layer3
+    Layer3 --> Layer4
+
+    style Governance fill:#e8f5e9
+    style Pausable fill:#fff4e1
+    style CircuitBreaker fill:#fce4ec
+    style UUPS fill:#e1f5ff
+
+`}
+/>
+
+## Access Control
+
+### ProtocolAccessControlUpgradeable
+
+All core contracts inherit from `ProtocolAccessControlUpgradeable`, which provides:
+
+```solidity
+abstract contract ProtocolAccessControlUpgradeable is
+    Initializable,
+    OwnableUpgradeable,
+    PausableUpgradeable,
+    ReentrancyGuardUpgradeable
+{
+    address internal _governanceTimelock;
+
+    modifier onlyGovernance();
+    modifier onlyGovernanceOrOwner();
+}
+```
+
+### Role Hierarchy
+
+| Role                    | Permissions                                    | Typical Holder                    |
+| ----------------------- | ---------------------------------------------- | --------------------------------- |
+| **Governance Timelock** | Protocol parameters, upgrades, token whitelist | TimelockController (via Governor) |
+| **Owner**               | Emergency pause, initial setup                 | Deployer multisig                 |
+| **Pool Creator**        | Pool-level access control, claim pool fees     | Pool deployer address             |
+| **Users**               | Deposit, withdraw, claim rewards               | Any address                       |
+
+### Governance Timelock
+
+Critical operations require governance approval with timelock delay:
+
+- Adding/removing tokens from whitelist
+- Updating pool implementation contracts
+- Changing protocol fee rates
+- Upgrading contract implementations
+
+```solidity
+modifier onlyGovernance() {
+    if (msg.sender != _governanceTimelock) {
+        revert UnauthorizedGovernance(msg.sender);
+    }
+    _;
+}
+```
+
+### Owner vs Governance
+
+Some operations allow either owner OR governance:
+
+```solidity
+modifier onlyGovernanceOrOwner() {
+    if (msg.sender != _governanceTimelock && msg.sender != owner()) {
+        revert UnauthorizedGovernance(msg.sender);
+    }
+    _;
+}
+```
+
+This enables:
+
+- Emergency response by owner (pause)
+- Normal operations through governance
+
+## Runtime Protection
+
+### Pausable Functionality
+
+All core contracts can be paused in emergencies:
+
+```solidity
+function pause() public virtual onlyGovernanceOrOwner {
+    _pause();
+}
+
+function unpause() public virtual onlyGovernanceOrOwner {
+    _unpause();
+}
+```
+
+When paused, only the following are blocked: `createPool`, `depositInsuredAsset`, `depositUnderwriteAsset`, `insuredWithdraw`, `partialWithdrawInsured`, `underwriterWithdraw`. **Fee and reward operations remain callable:** `claimRewards`, `claimCommission`, `payPoolFee`, and `payProtocolFee` do **not** use `whenNotPaused` and continue to work when the protocol is paused. View functions also continue working.
+
+**Use cases**:
+
+- Discovered vulnerability
+- Oracle malfunction
+- Coordinated attack detection
+
+### Reentrancy Protection
+
+All state-changing functions use OpenZeppelin's `ReentrancyGuardUpgradeable`:
+
+```solidity
+function depositInsuredAsset(...) external nonReentrant whenNotPaused {
+    // Safe from reentrancy
+}
+```
+
+This prevents:
+
+- Flash loan attacks exploiting callbacks
+- Recursive call exploits
+- Cross-function reentrancy
+
+### Input Validation
+
+The protocol validates all inputs through dedicated libraries:
+
+**PoolValidationLib**:
+
+- Commission rate bounds (1-50%)
+- Pool fee bounds (0-20%)
+- Collateral ratio bounds (100-500%)
+- Token address validation
+- Symbol length limits
+
+**OracleValidationLib**:
+
+- Price positivity checks
+- Staleness validation
+- Deviation calculations
+
+### Slippage Protection
+
+`SlippageLib.enforceMinReceived(actual, minExpected)` enforces minimum received amounts. Deposits use the pool's actual balance delta after `transferFrom`; withdrawals use the recipient wallet's actual balance delta after transfer. This keeps `minReceivedAmount` and `minAmountOut` truthful even for fee-on-transfer tokens, though users may need a wider withdrawal tolerance if a token charges transfer tax.
+
+## Oracle Security
+
+### Circuit Breakers
+
+The Pyth oracle includes circuit breaker protection:
+
+```solidity
+// Compares spot price to EMA (Exponential Moving Average)
+uint256 deviation = calculateDeviation(spotPrice, emaPrice);
+
+if (deviation > maxDeviationBps) {
+    // Either revert or fall back to EMA
+    return (emaPrice, false); // false = unreliable
+}
+```
+
+**Default threshold**: 5% deviation triggers circuit breaker
+
+This protects against:
+
+- Flash loan price manipulation
+- Oracle front-running
+- Temporary price spikes
+
+### Staleness Checks
+
+All oracle feeds validate data freshness:
+
+```solidity
+function validateStaleness(uint256 updatedAt, uint256 maxAge) internal view {
+    if (block.timestamp - updatedAt > maxAge) {
+        revert StalePrice();
+    }
+}
+```
+
+**Typical max age**: 60-3600 seconds depending on asset
+
+### L2 Sequencer Uptime
+
+For Arbitrum/Optimism/Base deployments, Chainlink feeds check sequencer status:
+
+```solidity
+(, int256 answer, uint256 startedAt, , ) = sequencerUptimeFeed.latestRoundData();
+
+// answer == 0 means sequencer is up
+if (answer != 0) {
+    revert SequencerDown();
+}
+
+// Enforce grace period after recovery
+if (block.timestamp - startedAt < GRACE_PERIOD) {
+    revert GracePeriodNotOver();
+}
+```
+
+**Grace period**: 1 hour after sequencer comes back up
+
+This prevents:
+
+- Stale prices during L2 outages
+- Arbitrage immediately after recovery
+
+### Share Inflation Protection
+
+ERC4626 oracle feeds protect against share inflation attacks:
+
+```solidity
+if (vault.totalSupply() < MINIMUM_SUPPLY) {
+    revert InsufficientVaultSupply();
+}
+```
+
+**Minimum supply**: 1000 shares
+
+## Upgradeability
+
+### UUPS Proxy Pattern
+
+Core contracts use the Universal Upgradeable Proxy Standard:
+
+<MermaidPlaceholder
+  chart={`
+flowchart LR
+    User[User] --> Proxy[ERC1967 Proxy<br/>Stores State]
+    Proxy --> ImplV1[Implementation V1]
+    Proxy -.->|After Upgrade| ImplV2[Implementation V2]
+
+    Governance[Governance] -->|Upgrade Call| Proxy
+
+    style Proxy fill:#e1f5ff
+    style ImplV1 fill:#c8e6c9
+    style ImplV2 fill:#fff4e1
+
+`}
+/>
+
+**Benefits**:
+
+- State preserved across upgrades
+- Bug fixes without migration
+- Feature additions over time
+
+**Safeguards**:
+
+- Only governance can upgrade
+- Timelock delay on upgrades
+- Implementation authorization checks
+
+### Storage Gaps
+
+All upgradeable contracts reserve storage for future variables:
+
+```solidity
+uint256[50] private __gap;
+```
+
+This ensures child contracts do not collide with future parent variables, safe upgrade paths, and storage layout compatibility.
+
+## Custom Errors
+
+The protocol uses custom errors for gas efficiency and clarity:
+
+```solidity
+// Input validation
+error InvalidCommissionRate();
+error InvalidCollateralRatio();
+error TokenNotWhitelisted();
+
+// State errors
+error PositionAlreadyWithdrawn();
+error UnlockProcessNotOver();
+
+// Access errors
+error NotOwner();
+error AccessControlDenied(address account, string operation);
+
+// Oracle errors
+error StalePrice();
+error SequencerDown();
+error GracePeriodNotOver();
+```
+
+Custom errors:
+
+- Cost less gas than revert strings
+- Provide structured error data
+- Enable better error handling in frontends
+
+## Time-Based Protections
+
+### Unlock Duration
+
+Protectors must wait before withdrawing locked collateral:
+
+1. Start unlock process (`startUnlockProcess`)
+2. Wait for `unlockDuration` (configurable)
+3. Withdraw after unlock completes
+
+This prevents:
+
+- Instant collateral removal during shield activations
+- Coordination attacks
+
+### Transfer Locks
+
+Receipt NFTs have transfer lock periods:
+
+| NFT Type  | Default Lock | Maximum |
+| --------- | ------------ | ------- |
+| Shielded  | 1 day        | 30 days |
+| Protector | 28 days      | 90 days |
+
+Prevents:
+
+- Rapid position flipping
+- Wash trading
+
+### Minimum Pool Time
+
+Shielded users must wait `minimumPoolTime` before cross-asset withdrawals:
+
+- Configurable per pool
+- Prevents immediate arbitrage
+- Ensures commitment to the protection relationship
+
+## Security Best Practices
+
+### For Users
+
+1. **Verify contracts** on block explorers before interacting
+2. **Set slippage protection** on withdrawals
+3. **Monitor positions** for unusual oracle behavior
+4. **Understand lock periods** before depositing
+
+### For Integrators
+
+1. **Check pause state** before transactions
+2. **Handle custom errors** appropriately
+3. **Validate oracle reliability flags**
+4. **Test with realistic scenarios**
+
+### For Governance
+
+1. **Review all proposals** thoroughly
+2. **Utilize timelock** for critical changes
+3. **Monitor oracle health** continuously
+4. **Have emergency procedures** ready
+
+## Audit Considerations
+
+Key areas for security review:
+
+- **Oracle manipulation vectors** in fee calculations
+- **Collateral ratio enforcement** during volatile markets
+- **Reentrancy paths** in complex withdrawal flows
+- **Access control completeness** across all functions
+- **Upgrade safety** and storage layout
+- **Cross-asset withdrawal** value calculations
+
+## Emergency Procedures
+
+### Pause Protocol
+
+If a vulnerability is discovered:
+
+1. Owner or governance calls `pause()` on affected contracts
+2. Investigate and prepare fix
+3. Deploy fix through governance (if upgrade needed)
+4. Call `unpause()` after verification
+
+### Oracle Failure
+
+If oracle feeds fail:
+
+1. Circuit breakers activate automatically
+2. Operations using affected oracles revert
+3. Replace or update oracle configuration via governance
+4. Resume normal operations
+
+### Governance Takeover
+
+If governance is compromised:
+
+1. Timelock provides delay for response
+2. Owner can pause to prevent damage
+3. Community coordinates response
+4. Deploy new governance if needed

@@ -1,0 +1,43 @@
+import { FeatureCard } from "../_components/FeatureCard";
+
+<FeatureCard type="defi-adapter" />
+
+# Universal DeFi Compatibility
+
+YieldShield can shield yield from **any** DeFi protocol. That is possible thanks to an **oracle system** that is both highly secure and flexible. In short: the oracle system is what allows YieldShield to price and value any protocol's tokens in a consistent, trustworthy way, so the rest of the protocol can operate uniformly across lending markets, vaults, staking products, and future designs.
+
+DeFi protocols do not need to change. YieldShield integrates with them solely through its oracle system: we add and configure the appropriate oracle feeds for their tokens and wire them into the protocol.
+
+## Why Any Protocol?
+
+DeFi is fragmented. Vaults, lending markets, and staking protocols each represent value differently: share-based pricing, interest accrual, or other mechanisms. YieldShield's oracle system supports multiple **oracle feed types**, each able to price a given kind of token. Chainlink and Pyth provide market prices; specialized feeds handle vault tokens (e.g. ERC4626) or other structures.
+
+Because integration is done on the oracle layer, **new protocols are supported by adding or configuring oracle feeds** for their tokens. The core pool logic and protection mechanism stay unchanged. YieldShield can therefore extend to new yield opportunities as they emerge, without architectural changes.
+
+## Dual-Feed Oracle Mode
+
+For added safety, YieldShield **can** use **two independent oracle feeds per token** when configured in dual-feed mode. Typically, one feed is stability-oriented (e.g. derived from a vault's on-chain value or a smoothed price) and the other is market-oriented (e.g. a live market feed). Not all tokens use dual-feed; single-feed mode is also supported.
+
+When both feeds are configured and **diverge beyond a defined threshold**, a **timelocked process** allows the system to switch to the backup feed. That limits the impact of a faulty or manipulated primary source. When conditions stabilize, the protocol can revert to the primary feed. This design (redundancy plus a structured, timelocked switch) gives users and the protocol a robust mechanism to rely on correct prices, especially for deposits, withdrawals, and collateral calculations.
+
+## Security and Flexibility
+
+**Security.** The oracle system uses multiple independent price sources, circuit breakers on critical operations (such as collateral at deposit and cross-asset withdrawals), and checks for stale or manipulated data. When dual-feed mode is configured for a token, the secondary feed adds an extra layer: if one feed misbehaves, the other can take over after the timelock. There is no single point of failure.
+
+**Flexibility.** New protocols are integrated by adding or configuring oracle feeds that know how to price their tokens. The pool and protection logic do not need to change. As DeFi evolves, YieldShield can support new vaults, lending markets, and staking products through its oracle system alone.
+
+## What This Means for You
+
+- **Users:** You can earn and shield yield from any supported protocol. The oracle system ensures your deposits, yields, and withdrawals are valued consistently and safely.
+- **Protocols:** No changes are required on your side. YieldShield connects to your tokens via its oracle system; we add and configure the feeds for your asset types.
+- **Protectors:** You can provide protection across many protocols through a single system. The same oracle design protects your collateral and the shielded side.
+- **Ecosystem:** One protection layer works across DeFi. Universal compatibility makes YieldShield critical infrastructure as the space grows.
+
+## Example: Vault Tokens
+
+Vault tokens such as **sDAI** (Savings DAI) and **sUSDe** (staked USDe) illustrate how the oracle system supports different protocols. They are priced using a feed that reads the vault's on-chain value (assets per share). When configured in **dual-feed mode**, a second, market-based feed runs in parallel. If the two diverge beyond the threshold, the timelocked process can switch to the backup. That keeps pricing robust whether the asset trades at a premium or discount to its on-chain value.
+
+## Further Reading
+
+- [Oracle System](/docs/architecture/oracle-system): Technical design of the oracle system, including dual-feed configuration, the challenge mechanism, and individual feed types.
+- [Protocol Whitepaper](/docs/whitepaper): Full protocol architecture and the role of the oracle system.

@@ -1,0 +1,166 @@
+# Shield Pool Factory
+
+The **Factory** is where new shield pools are created. It decides which tokens can be used (the whitelist), deploys each pool and its receipt NFTs, and keeps a registry of all pools. This page is for pool creators and integrators: it explains how a pool comes to exist, how tokens get approved, and what the Factory controls. _How does a new shield pool get created, and who decides which assets can be used?_
+
+## Overview
+
+The Factory contract serves as the entry point for pool creation. It validates parameters, enforces token whitelisting, and deploys pools as upgradeable proxies. The Factory also manages the token whitelist, which controls which tokens can be used in pools. Before `createPool` can be called, `compositeOracle` and `defaultProtocolFeeRecipient` must be set. The factory enforces **MAX_POOLS = 1000**; `MaxPoolsExceeded` is raised if the limit is reached.
+
+## Pool Creation Process
+
+When creating a pool, the Factory performs the following steps:
+
+1. **Parameter Validation**: Validates all input parameters using `PoolValidationLib`
+
+   - Basic validation (addresses, symbols)
+   - Pool parameter validation (commission rate, pool fee, collateral ratio)
+   - Whitelist validation (both tokens must be whitelisted)
+
+2. **Token Info Retrieval**: Retrieves `TokenInfo` structs for both tokens from the whitelist
+
+   - Each whitelisted token has: `name`, `symbol`, `token`, `oracleFeed`, `minCollateralRatioBp`. `createPool` requires `_collateralRatio >= underwriteTokenInfo.minCollateralRatioBp` when the token is used as protector.
+
+3. **Pool Deployment**: The **Factory** deploys `ShieldReceiptNFT` and `ProtectorReceiptNFT`, then calls `PoolCreationLib.createAndStorePool`
+
+   - **PoolCreationLib** creates only the **ERC1967 proxy** for the pool and the `PoolInfo` struct
+   - The **Factory** is responsible for: deploying the two NFT contracts, calling `setPool(poolAddress)` on each, and transferring NFT ownership to the pool
+   - The pool is initialized with all required parameters (including the NFT addresses)
+
+4. **Registry Update**: Stores pool information and adds to the pools array
+
+   - Creates a `PoolInfo` struct with pool metadata
+   - Stores mapping from pool address to `PoolInfo`
+   - Adds pool address to the `pools` array
+
+5. **Event Emission**: Emits `PoolCreated` event for off-chain indexing
+
+## Token Whitelisting
+
+The Factory manages which tokens can be used in pools through a whitelist system:
+
+### TokenWhitelistLib
+
+The `TokenWhitelistLib` library provides functions for managing the whitelist:
+
+- **addToken**: Adds a token to the whitelist (governance only)
+- **addTokenInitial**: Adds a token during initial deployment (owner only)
+- **removeToken**: Removes a token from the whitelist (governance only)
+
+### TokenInfo (TokenWhitelistLib)
+
+Each whitelisted token has:
+
+- `name`: Token name
+- `symbol`: Token symbol
+- `token`: Token contract address
+- `oracleFeed`: Oracle feed for this token's price (used by CompositeOracle)
+- `minCollateralRatioBp`: Minimum collateral ratio (basis points) when the token is used as **protector**. `createPool` requires `_collateralRatio >= underwriteTokenInfo.minCollateralRatioBp`.
+
+`addToken` and `addTokenInitial` both take `(token, name, symbol, oracleFeed, minCollateralRatioBp)`. **updateMinimumCollateral(token, newMinCollateralRatioBp)** (governance) updates the minimum for an already-whitelisted token.
+
+### Whitelist Enforcement
+
+The Factory enforces that both shielded and backing tokens must be whitelisted before a pool can be created. This ensures only approved tokens are used and TokenInfo (including `oracleFeed` and `minCollateralRatioBp`) is available for pool creation.
+
+## Validation Library
+
+The `PoolValidationLib` provides three validation functions:
+
+### validateBasicParams
+
+Validates basic pool creation parameters:
+
+- Ensures token addresses are not zero or equal
+- Validates token symbols are not empty
+- Ensures symbol length is within limits
+
+### validatePoolParams
+
+Validates pool configuration parameters:
+
+- Commission rate must be within bounds (1% to 50%)
+- Pool fee must be within bounds (0% to 20%)
+- Collateral ratio must be within bounds (100% to 500%)
+
+### validateWhitelist
+
+Enforces whitelist requirements:
+
+- Both tokens must be whitelisted
+- Tokens must be different addresses
+
+## createPool and Pool Creation
+
+**createPool(\_insuredToken, \_insuredTokenSymbol, \_underwriteToken, \_underwriteTokenSymbol, \_commissionRate, \_poolFee, \_collateralRatio)**
+Pool creator is `msg.sender`. There is no "Pool Name" or "Initial Capital" parameter at creation. The factory must have `compositeOracle` and `defaultProtocolFeeRecipient` set. `MAX_POOLS` is 1000; `MaxPoolsExceeded` is raised if the limit is reached.
+
+### PoolCreationLib.createAndStorePool
+
+Called by the Factory with init calldata. It:
+
+- Creates an **ERC1967Proxy** with the pool implementation and runs the pool initializer
+- Returns the pool address and a `PoolInfo` struct
+
+It does **not** deploy the NFT contracts; the Factory deploys `ShieldReceiptNFT` and `ProtectorReceiptNFT`, sets `setPool` on each, transfers their ownership to the pool, then appends the pool to `pools` and stores `_poolInfo`.
+
+## Pool Registry
+
+The Factory maintains a registry of all created pools:
+
+- **pools**: Array of all pool addresses (for iteration)
+- **activePools**: Array of currently active pool addresses (capped by `MAX_POOLS`)
+- **\_poolInfo**: Mapping from pool address to `PoolInfo` struct
+- **poolCount / getPools**: Returns paginated historical pool addresses
+- **activePoolCount / getActivePools**: Returns currently active pool addresses
+- **getPoolInfo**: Returns `PoolInfo` for a specific pool
+
+## PoolInfo Structure
+
+Each pool's metadata is stored in a `PoolInfo` struct:
+
+- `insuredToken`: Address of the shielded token
+- `underwriteToken`: Address of the backing token
+- `insuredTokenSymbol`: Symbol of shielded token
+- `underwriteTokenSymbol`: Symbol of backing token
+- `commissionRate`: Commission rate (basis points)
+- `poolFee`: Pool creator fee rate (basis points)
+- `collateralRatio`: Collateral ratio (basis points)
+- `createdAt`: Timestamp of pool creation
+- `creator`: Address of the pool creator
+
+## Governance and Owner Functions
+
+- **setPoolImplementation**: Updates the pool implementation (for upgrades). **Governance only.**
+- **setCompositeOracle**, **setDefaultProtocolFeeRecipient**: **Governance or owner.** Must be set before `createPool`.
+- **addToken(token, name, symbol, oracleFeed, minCollateralRatioBp)**: Adds a token to the whitelist. **Governance only.**
+- **addTokenInitial(...)**: Same signature; for bootstrap during initial deployment. **Owner only.**
+- **updateMinimumCollateral(token, newMinCollateralRatioBp)**: Updates minimum collateral for a whitelisted token. **Governance only.**
+- **removeToken**: Removes a token from the whitelist. **Governance only.**
+- **setGovernanceTimelock**: Updates the governance timelock. **Governance or owner.**
+
+## Base Contract
+
+The Factory inherits from `ProtocolAccessControlUpgradeable`, providing:
+
+- Governance timelock controls
+- Pausable functionality
+- Reentrancy protection
+- Upgradeability (UUPS pattern)
+
+## Interface
+
+The Factory implements `ISplitRiskPoolFactory`, which defines:
+
+- State variable getters
+- Pool creation function
+- View functions for pool registry
+- Governance functions
+
+## Integration with Pools
+
+When a pool is created, the Factory:
+
+- Sets itself as the initial owner of the pool (for upgrade authority)
+- Passes the governance timelock to the pool
+- Ensures proper initialization of all pool parameters
+- Maintains the registry for discovery and iteration

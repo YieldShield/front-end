@@ -1,0 +1,64 @@
+[
+  {
+    "id": "0xtx1:0:pool-created",
+    "chainId": 421614,
+    "contractName": "SplitRiskPoolFactory",
+    "contractAddress": "0x6eeba450836b4f2efc4049178d15888a3a5e6568",
+    "eventName": "PoolCreated",
+    "blockNumber": 235206800,
+    "transactionHash": "0xtx1",
+    "logIndex": 0,
+    "userAddress": "0x1111111111111111111111111111111111111111",
+    "poolAddress": "0x3333333333333333333333333333333333333333",
+    "action": "create_pool",
+    "occurredAt": "2026-04-08T10:00:00.000Z",
+    "questId": "creator_pool_architect",
+    "repeatableActionId": "create_pool",
+    "metadata": {
+      "shieldedToken": "0x4444444444444444444444444444444444444444",
+      "backingToken": "0x5555555555555555555555555555555555555555",
+      "commissionRate": "100",
+      "poolFee": "25",
+      "collateralRatio": "15000"
+    }
+  },
+  {
+    "id": "0xtx2:0:shielded-deposit",
+    "chainId": 421614,
+    "contractName": "SplitRiskPool",
+    "contractAddress": "0x3333333333333333333333333333333333333333",
+    "eventName": "ShieldedAssetDeposited",
+    "blockNumber": 235206810,
+    "transactionHash": "0xtx2",
+    "logIndex": 0,
+    "userAddress": "0x1111111111111111111111111111111111111111",
+    "poolAddress": "0x3333333333333333333333333333333333333333",
+    "assetAddress": "0x4444444444444444444444444444444444444444",
+    "amount": "1000000",
+    "action": "saver_deposit",
+    "occurredAt": "2026-04-08T10:05:00.000Z",
+    "questId": "saver_first_shield",
+    "repeatableActionId": "saver_deposit",
+    "metadata": {
+      "tokensIssued": "999000"
+    }
+  },
+  {
+    "id": "0xtx3:0:rewards-claimed",
+    "chainId": 421614,
+    "contractName": "SplitRiskPool",
+    "contractAddress": "0x3333333333333333333333333333333333333333",
+    "eventName": "RewardsClaimed",
+    "blockNumber": 235206900,
+    "transactionHash": "0xtx3",
+    "logIndex": 0,
+    "userAddress": "0x1111111111111111111111111111111111111111",
+    "poolAddress": "0x3333333333333333333333333333333333333333",
+    "assetAddress": "0x4444444444444444444444444444444444444444",
+    "amount": "25000",
+    "action": "claim_rewards",
+    "occurredAt": "2026-04-09T10:05:00.000Z",
+    "questId": "saver_first_reward_claim",
+    "repeatableActionId": "claim_rewards"
+  }
+]

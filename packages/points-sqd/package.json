@@ -1,0 +1,22 @@
+{
+  "name": "@yieldshield-lite/points-sqd",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "export:local": "tsx ./scripts/export-local.ts",
+    "export:sqd": "tsx ./scripts/export-sqd.ts",
+    "publish:ipfs": "tsx ./scripts/publish-ipfs.ts",
+    "test": "tsx --test ./src/**/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@subsquid/evm-processor": "^1.29.0",
+    "@yieldshield-lite/points-core": "file:../points-core",
+    "viem": "^2.47.11"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.1",
+    "tsx": "^4.20.6"
+  }
+}

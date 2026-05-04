@@ -1,0 +1,68 @@
+import { IntroHeroCard } from "../_components/IntroHeroCard";
+import { MermaidPlaceholder } from "../_components/MermaidPlaceholder";
+
+<IntroHeroCard />
+
+# Introduction
+
+YieldShield is a decentralized, highly capital-efficient protection protocol that uses a tranche-based risk allocation mechanism. Unlike traditional protection models, YieldShield operates without centralized claim assessors or oracle-dependent claim validation systems. The protocol integrates seamlessly with existing DeFi protocols, including lending and borrowing markets, to create highly competitive DeFi savings accounts for stablecoins. These accounts offer superior rates, comprehensive shield protection, and eliminate the need to trust traditional banking institutions.
+
+By abstracting away the underlying complexity of risk assessment, YieldShield serves as the DeFi abstraction layer that makes decentralized finance accessible to everyone. When all DeFi strategies are fully shielded through YieldShield, investors can focus exclusively on selecting the strategy that generates the highest yield, without evaluating underlying protocol risks.
+
+## How YieldShield Works
+
+YieldShield operates as a tranche-based system where users have a senior tranche with priority for exit. The protocol facilitates a seamless flow between protectors, shield pools, and users:
+
+<MermaidPlaceholder
+  chart={`
+flowchart TD
+    Protectors["Protectors"]
+    Pools["Shield Pools<br/><small>Tranche base system: Users hold senior tranche with priority for exit</small>"]
+    Users["Users"]
+
+    Protectors -->|"1. Lock yield bearing token"| Pools
+    Users -->|"2. Deposit yield bearing token"| Pools
+    Pools -->|"3. Get token with additional yield"| Protectors
+    Pools -->|"4. Get shielded token with high yield"| Users
+
+    classDef protectors fill:#e5e7eb,stroke:#6b7280,stroke-width:2px
+    classDef pools fill:#f3e5f5,stroke:#7518a7,stroke-width:3px
+    classDef users fill:#e5e7eb,stroke:#6b7280,stroke-width:2px
+
+    class Protectors protectors
+    class Pools pools
+    class Users users
+
+    linkStyle 0 stroke:#7518a7,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 1 stroke:#7518a7,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 2 stroke:#7518a7,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 3 stroke:#7518a7,stroke-width:2px,stroke-dasharray: 5 5
+
+`}
+/>
+
+The diagram above illustrates the core protocol flow:
+
+- **Protectors** provide capital by locking yield-bearing tokens into shield pools, receiving tokens with additional yield as compensation for their risk-taking role
+- **Shield Pools** operate as a tranche-based system where users' positions are in the senior tranche with priority for exit, ensuring their funds are protected
+- **Users** deposit yield-bearing tokens and receive shielded tokens with high yield, allowing them to earn competitive returns while maintaining protection against protocol risks
+
+## Why YieldShield?
+
+YieldShield represents a paradigm shift in DeFi, addressing fundamental limitations in both traditional protection models and existing DeFi protection protocols. The following principles define what makes YieldShield unique:
+
+### Decentralized Shield Activation
+
+Unlike traditional protection models that rely on centralized claim assessors and complex KYC processes, YieldShield introduces tradeable risk tokens that democratize the shield activation process. These tokens represent positions in shield pools and can be seamlessly integrated into shielded vaults, exchanges, and a wide variety of DeFi products, creating a truly decentralized protection infrastructure. The market itself determines claim validity through tokenized risk, eliminating the delays inherent in DAO voting mechanisms and oracle-dependent validation systems.
+
+### Uncompromising Safety Standards
+
+YieldShield prioritizes security through **on-chain transparency** and **strict diversification rules**. Every aspect of the protocol operates with complete visibility, ensuring that risk assessment, capital allocation, and monitoring processes are verifiable by anyone. YieldShield's automated monitoring systems track pool health and notify users immediately when issues are detected, ensuring proactive risk management.
+
+### Maximum Capital Efficiency
+
+YieldShield achieves unprecedented capital efficiency by leveraging blockchain technology and AI-driven risk assessment. By eliminating manual intervention and operating with complete on-chain transparency, the protocol maximizes capital utilization while minimizing operational overhead. Innovative backup investment strategies ensure that capital is always deployed as efficiently as possible, delivering superior returns to all participants.
+
+### Universal DeFi Integration
+
+YieldShield can shield yield from **any** DeFi protocol. That is possible thanks to an **oracle system** that prices and values each protocol's tokens in a consistent, trustworthy way. DeFi protocols do not need to change. YieldShield integrates with them solely through its oracle layer by adding and configuring the right oracle feeds for each asset type (e.g. Chainlink or Pyth for market prices, specialized feeds for vault tokens such as ERC4626); the core pool and protection logic stays the same. New protocols are supported by adding or configuring feeds for their tokens. The oracle design also includes redundancy and safeguards, such as dual feeds per token and circuit breakers on critical operations, so deposits, withdrawals, and collateral are valued safely. By relying on this oracle model, YieldShield works as a single protection layer across lending markets, vaults, and staking products; users can choose the highest yielding opportunities without evaluating underlying protocol risk.
