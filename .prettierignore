@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+apps/web/dist/
+apps/web/public/points-snapshots/
+package-lock.json
+
+# Large generated or imported artifacts
+packages/points-sqd/abis/*.json

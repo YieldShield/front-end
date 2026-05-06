@@ -51,16 +51,16 @@ oracle price freshness via Pyth Hermes in the browser.
 
 ### Stack
 
-| Layer | Technology |
-|---|---|
-| Build | Vite 8, static output to `dist/` |
-| UI | React 19, Tailwind CSS 4, DaisyUI 5 |
-| Routing | react-router-dom (HashRouter) |
-| Wallet | RainbowKit 2, wagmi 2, viem 2 |
-| Data fetching | TanStack React Query |
-| Indexed data | Ponder GraphQL (external, optional) |
+| Layer         | Technology                              |
+| ------------- | --------------------------------------- |
+| Build         | Vite 8, static output to `dist/`        |
+| UI            | React 19, Tailwind CSS 4, DaisyUI 5     |
+| Routing       | react-router-dom (HashRouter)           |
+| Wallet        | RainbowKit 2, wagmi 2, viem 2           |
+| Data fetching | TanStack React Query                    |
+| Indexed data  | Ponder GraphQL (external, optional)     |
 | Oracle prices | Direct contract reads + Pyth Hermes API |
-| Deployment | Static files on IPFS or any CDN |
+| Deployment    | Static files on IPFS or any CDN         |
 
 ### IPFS guardrails
 
@@ -80,11 +80,11 @@ These constraints apply to all code in the app:
 
 ### Data sources
 
-| Source | What it provides | Required? |
-|---|---|---|
-| EVM RPC (Alchemy / public) | Contract state: pools, balances, positions, oracle prices, token metadata | Yes |
-| Pyth Hermes API | Price update data for Pyth pull oracle freshness | Yes (for transactions) |
-| Ponder GraphQL | Points, quests, streaks, leaderboard, position discovery acceleration | No (graceful degradation) |
+| Source                     | What it provides                                                          | Required?                 |
+| -------------------------- | ------------------------------------------------------------------------- | ------------------------- |
+| EVM RPC (Alchemy / public) | Contract state: pools, balances, positions, oracle prices, token metadata | Yes                       |
+| Pyth Hermes API            | Price update data for Pyth pull oracle freshness                          | Yes (for transactions)    |
+| Ponder GraphQL             | Points, quests, streaks, leaderboard, position discovery acceleration     | No (graceful degradation) |
 
 ---
 
@@ -160,10 +160,10 @@ with `StalePrice`.
 2. If stale:
    a. Read the price feed ID from `tokenToPriceFeedId(token)` on PythOracle.
    b. Fetch binary update data from Pyth Hermes API
-      (`hermes.pyth.network` — public, no API key, browser-safe CORS).
+   (`hermes.pyth.network` — public, no API key, browser-safe CORS).
    c. Read the update fee via `getUpdateFee(updateData)`.
    d. Submit `updatePriceFeeds(updateData)` transaction — user signs and pays
-      fee in ETH (~0.001 ETH).
+   fee in ETH (~0.001 ETH).
    e. Wait for confirmation.
 3. Submit the main pool transaction (deposit/withdraw/etc.) — user signs.
 
@@ -171,6 +171,7 @@ If the price update fails, proceed anyway and let the pool transaction revert
 naturally if prices are truly too stale. This matches the full app's behavior.
 
 **When to check freshness:**
+
 - Before deposits (shielded and protector)
 - Before withdrawals
 - Not needed for read-only browsing (stale display prices are acceptable)
@@ -195,6 +196,7 @@ progress indicators.
 **User goal:** Deposit a yield-bearing token into a pool for protection.
 
 **Steps:**
+
 1. User selects pool and enters amount.
 2. Frontend validates: amount within pool's min/max, user has sufficient
    balance, pool not at TVL cap.
@@ -218,6 +220,7 @@ progress indicators.
 **User goal:** Withdraw full position from a pool.
 
 **Steps:**
+
 1. User selects position (by NFT tokenId).
 2. Frontend reads `getShieldDepositInfo(tokenId)` for position data.
 3. User chooses asset: shielded token (normal) or backing token (shield
@@ -238,6 +241,7 @@ Remaining amount stays in pool (new NFT minted).
 **User goal:** Withdraw protector position (requires unlock period).
 
 **Steps:**
+
 1. Start unlock: `startUnlockProcess(tokenId)` — begins countdown.
 2. Wait for unlock duration (displayed in UI with countdown timer).
 3. After unlock: `protectorWithdraw(tokenId, amount, preferredAsset, minAmountOut)`.
@@ -258,6 +262,7 @@ Call `claimCommission(tokenId)`. Claimable amount available from
 **User goal:** Create a new protection pool.
 
 **Form fields:**
+
 - Shielded token (dropdown from `getWhitelistedTokens()`)
 - Backing token (dropdown from whitelist)
 - Commission rate (basis points, within contract bounds)
@@ -266,12 +271,13 @@ Call `claimCommission(tokenId)`. Claimable amount available from
 - Creation bond amount (must meet minimum USD value)
 
 **Steps:**
+
 1. User fills form with token selection and fee configuration.
 2. Frontend validates all parameters against contract limits.
 3. Check ERC20 allowance for creation bond. Approve if needed.
 4. Submit `factory.createPool(shieldedToken, shieldedTokenSymbol, backingToken,
-   backingTokenSymbol, commissionRate, poolFee, collateralRatio,
-   creationBondAmount)`.
+backingTokenSymbol, commissionRate, poolFee, collateralRatio,
+creationBondAmount)`.
 5. On success, redirect to new pool's detail page.
 
 ---
@@ -285,6 +291,7 @@ Query user positions via GraphQL (fast, indexed, returns all positions across
 all pools in a single query).
 
 **When Ponder is unavailable (on-chain fallback):**
+
 1. Fetch all pool addresses from factory.
 2. For each pool, call `getUserNFTCounts(userAddress)` to check if user has
    positions (skip pools with zero count).
@@ -391,11 +398,11 @@ Pool fees are shown as a single **total fee** number (commission + pool fee +
 protocol fee combined into basis points). An expandable "Details" section breaks
 it down:
 
-| Fee type | Source | Who receives |
-|---|---|---|
-| Commission | `commissionRate` from pool info | Protectors (pro-rata) |
-| Pool fee | `poolFee` from pool info | Pool creator |
-| Protocol fee | `protocolFee` from `poolConfig()` | Protocol treasury |
+| Fee type     | Source                            | Who receives          |
+| ------------ | --------------------------------- | --------------------- |
+| Commission   | `commissionRate` from pool info   | Protectors (pro-rata) |
+| Pool fee     | `poolFee` from pool info          | Pool creator          |
+| Protocol fee | `protocolFee` from `poolConfig()` | Protocol treasury     |
 
 ---
 

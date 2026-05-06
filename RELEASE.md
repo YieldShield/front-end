@@ -19,6 +19,7 @@ npm ci
 npm run typecheck
 npm test
 npm run build
+npm run format:check
 npm audit --omit=dev --audit-level=high
 ```
 

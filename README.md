@@ -174,6 +174,12 @@ Check high-severity production dependency advisories:
 npm audit --omit=dev --audit-level=high
 ```
 
+Check formatting for docs and configuration:
+
+```bash
+npm run format:check
+```
+
 Copy `.env.example` to `.env` and fill in at least the WalletConnect project ID
 when you want full wallet connector support. The browser app defaults Arbitrum
 Sepolia reads to a Chainlist-listed public RPC fallback list that works for

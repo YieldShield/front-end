@@ -22,7 +22,11 @@
   --ys-error: #ef4444;
   --ys-warning-bg: rgba(245, 158, 11, 0.1);
   --ys-error-bg: rgba(239, 68, 68, 0.1);
-  --ys-gradient-brand: linear-gradient(135deg, var(--ys-brand-secondary) 0%, var(--ys-brand-primary) 100%);
+  --ys-gradient-brand: linear-gradient(
+    135deg,
+    var(--ys-brand-secondary) 0%,
+    var(--ys-brand-primary) 100%
+  );
   --ys-blob-primary: var(--ys-brand-secondary);
   --ys-blob-ring-1: var(--ys-brand-primary-alpha-12);
   --ys-blob-ring-2: var(--ys-brand-secondary-alpha-12);

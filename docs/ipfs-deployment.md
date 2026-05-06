@@ -279,15 +279,15 @@ dnslink=/ipfs/<frontend-cid>
 
 Use this decision table when new point data is available:
 
-| Snapshot pointer mode | Need frontend redeploy for new snapshot? | What to update |
-| --- | --- | --- |
-| No snapshot | No | Nothing; only personal browser points are available |
-| Embedded `./points-snapshots` | Yes | Rebuild and republish frontend |
-| Fixed `VITE_POINTS_SNAPSHOT_CID` | Yes | Rebuild and republish frontend with the new CID |
-| Mutable manifest/base URL | No | Update the URL target or hosted files |
-| `VITE_POINTS_SNAPSHOT_DNSLINK_NAME` | No | Update the DNSLink TXT record |
-| IPNS or ENS contenthash via `VITE_POINTS_SNAPSHOT_MANIFEST_URL` | No | Update the alias target |
-| On-chain snapshot registry | No | Publish/pin snapshot, then update registry pointer |
+| Snapshot pointer mode                                           | Need frontend redeploy for new snapshot? | What to update                                      |
+| --------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------- |
+| No snapshot                                                     | No                                       | Nothing; only personal browser points are available |
+| Embedded `./points-snapshots`                                   | Yes                                      | Rebuild and republish frontend                      |
+| Fixed `VITE_POINTS_SNAPSHOT_CID`                                | Yes                                      | Rebuild and republish frontend with the new CID     |
+| Mutable manifest/base URL                                       | No                                       | Update the URL target or hosted files               |
+| `VITE_POINTS_SNAPSHOT_DNSLINK_NAME`                             | No                                       | Update the DNSLink TXT record                       |
+| IPNS or ENS contenthash via `VITE_POINTS_SNAPSHOT_MANIFEST_URL` | No                                       | Update the alias target                             |
+| On-chain snapshot registry                                      | No                                       | Publish/pin snapshot, then update registry pointer  |
 
 The recommended first production path is DNSLink plus runner signatures, with
 multiple operators pinning the published snapshot CID. Use the on-chain registry
