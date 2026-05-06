@@ -1,0 +1,16 @@
+YieldShield Front End
+Copyright (c) 2026 YieldShield contributors
+
+This repository was initialized from the YieldShield front-end split at:
+
+  YieldShield/yieldshield-lite@87433b63b91531792291d4d9231e7bad90f862a2
+
+The import intentionally did not include the source repository's Git history.
+See README.md for current setup, support, security, and provenance details.
+
+Project-authored files are licensed under the MIT License unless a file states
+otherwise. Third-party dependencies remain under their own licenses as declared
+by their packages and lockfile metadata.
+
+Visual assets under apps/web/public are project assets for the YieldShield front
+end unless a more specific license notice is added next to the asset.

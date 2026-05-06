@@ -120,10 +120,12 @@ Next up:
 ## Community
 
 - License: MIT, see [`LICENSE`](LICENSE).
+- Changelog: see [`CHANGELOG.md`](CHANGELOG.md).
 - Contributing: see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 - Security reports: see [`SECURITY.md`](SECURITY.md).
 - Support: see [`SUPPORT.md`](SUPPORT.md).
 - Maintainers and release expectations: see [`MAINTAINERS.md`](MAINTAINERS.md).
+- Release process: see [`RELEASE.md`](RELEASE.md).
 
 ## Local Development
 
@@ -255,3 +257,5 @@ guidelines. Use [SUPPORT.md](SUPPORT.md) for support boundaries and
 This repository was initialized from
 `YieldShield/yieldshield-lite@87433b63b91531792291d4d9231e7bad90f862a2` as a
 single root commit without importing prior Git history.
+
+See [`NOTICE`](NOTICE) for repository provenance and licensing notes.
