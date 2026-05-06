@@ -1,6 +1,8 @@
 # Roadmap
 
-See `docs/spec-v1.md` for the full V1 specification.
+See `docs/architecture.md`, `docs/ipfs-deployment.md`, and
+`docs/decentralized-points-snapshots.md` for the current V1 architecture and
+deployment scope.
 
 ## Milestone 1: Repository Foundation
 

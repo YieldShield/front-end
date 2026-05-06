@@ -79,7 +79,7 @@ The following are intentionally out of scope for the first milestone:
 
 ## Deployment Targets
 
-Latest Arbitrum Sepolia deployment set currently wired in this repo (staging release s1.0.2):
+Currently configured Arbitrum Sepolia deployment set (staging release s1.0.2):
 
 - `SplitRiskPoolFactory`: `0x755C9bd97B882278E3d19D2A1e31ad522C3f6483`
 - `YSGovernor`: `0x6E6d60fAc4FE03279652fe28ea7d837E51e091Ca`
@@ -272,6 +272,8 @@ guidelines. Use [SUPPORT.md](SUPPORT.md) for support boundaries and
   <https://github.com/YieldShield/yieldshield/tree/main/packages/nextjs>
 - Contracts package:
   <https://github.com/YieldShield/yieldshield/tree/main/packages/foundry>
+- Standalone smart contracts repository:
+  <https://github.com/YieldShield/smart-contracts>
 - IPFS research note:
   <https://github.com/YieldShield/yieldshield/blob/ipfs-hosting/docs/IPFS_HOSTING_RESEARCH_2026-03-27.md>
 

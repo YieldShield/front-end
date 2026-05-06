@@ -4,6 +4,25 @@
   "private": true,
   "license": "MIT",
   "description": "IPFS-first YieldShield frontend",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YieldShield/front-end.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YieldShield/front-end/issues"
+  },
+  "homepage": "https://github.com/YieldShield/front-end#readme",
+  "keywords": [
+    "yieldshield",
+    "defi",
+    "frontend",
+    "ipfs",
+    "react",
+    "vite",
+    "web3",
+    "arbitrum",
+    "wallet"
+  ],
   "scripts": {
     "dev": "npm run dev --workspace @yieldshield/front-end-web",
     "build": "npm run build --workspace @yieldshield/front-end-web",
