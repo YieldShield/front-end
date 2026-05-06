@@ -1,5 +1,8 @@
 # YieldShield Front End
 
+[![CI](https://github.com/YieldShield/front-end/actions/workflows/ci.yml/badge.svg)](https://github.com/YieldShield/front-end/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/YieldShield/front-end)](LICENSE)
+
 YieldShield front end is an IPFS-first browser app for the YieldShield protocol that
 keeps the visual identity, landing page structure, and product shell of the
 existing YieldShield site while removing the hosted-runtime assumptions that do
@@ -84,32 +87,35 @@ Latest Arbitrum Sepolia deployment set currently wired in this repo (staging rel
 - `TimelockController`: `0xEC57FcFBAe031B4d983a24A5688949FAE5Ee848C`
 - `SplitRiskPool` implementation: `0xa9a98eaEFc534c8f53C7FbEc6B38fE77E83AbbA3`
 
-## Planned Structure
+## Repository Layout
 
 ```text
 apps/
-  web/        IPFS-first frontend application
-docs/         Architecture, scope, and migration notes
-packages/     Shared libraries if the repo grows beyond a single app
+  web/                    IPFS-first Vite/React frontend application
+docs/                     Architecture, deployment, and points snapshot notes
+packages/
+  points-core/            Shared points rules and snapshot types
+  points-sqd/             Optional SQD/RPC snapshot exporter
+.github/                  CI, Dependabot, issue forms, and PR template
 ```
 
 ## Development Status
 
-This repository is being built incrementally in separate commits. The current
-state includes:
+This repository is active and still pre-production. The current state includes:
 
-1. repository and architecture setup
-2. Vite-based static frontend scaffold
-3. contract-aware protocol client layer
-4. legacy YieldShield shell and landing-page restoration
-5. read-only `Yield`, `Pools`, `Governance`, and `Docs` routes
+1. Vite-based static frontend scaffold
+2. contract-aware protocol client layer
+3. legacy YieldShield shell and landing-page restoration
+4. wallet connection and protocol read flows
+5. deposit, withdrawal, claim, and pool-creation UI paths
+6. static docs and decentralized points snapshot support
 
 Next up:
 
-1. position discovery and user portfolio flows
-2. deposit and withdraw transaction paths
-3. direct-browser replacements for remaining hosted helpers
-4. IPFS deployment hardening and release polish
+1. transaction-flow hardening
+2. IPFS deployment hardening
+3. release polish and production configuration review
+4. broader cross-browser and wallet QA
 
 ## Community
 
@@ -126,15 +132,45 @@ npm ci
 npm run dev
 ```
 
-The first app lives in `apps/web`.
+The frontend app lives in `apps/web`.
 
-Current root scripts:
+## Common Commands
 
-- `npm run dev`
-- `npm run build`
-- `npm run preview`
-- `npm run typecheck`
-- `npm test`
+Run the local development server:
+
+```bash
+npm run dev
+```
+
+Typecheck every workspace covered by CI:
+
+```bash
+npm run typecheck
+```
+
+Run the test suites:
+
+```bash
+npm test
+```
+
+Build the static frontend:
+
+```bash
+npm run build
+```
+
+Preview the production build locally:
+
+```bash
+npm run preview
+```
+
+Check high-severity production dependency advisories:
+
+```bash
+npm audit --omit=dev --audit-level=high
+```
 
 Copy `.env.example` to `.env` and fill in at least the WalletConnect project ID
 when you want full wallet connector support. The browser app defaults Arbitrum
@@ -180,6 +216,28 @@ The intended decentralized points flow is not a browser-to-SQD API call. SQD is
 used by an independently runnable exporter to read chain history and produce
 static snapshot files. Those files can be pinned to IPFS and loaded by the
 browser without secrets.
+
+## Verification
+
+The current open-source readiness pass was checked with:
+
+```bash
+npm ci
+npm run typecheck
+npm test
+npm run build
+npm audit --omit=dev --audit-level=high
+```
+
+The Vite production build currently completes with bundle-size warnings for a
+few wallet and dependency chunks. Those warnings are tracked as optimization
+work, not release blockers for the open-source baseline.
+
+## Contributing and Support
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and pull request
+guidelines. Use [SUPPORT.md](SUPPORT.md) for support boundaries and
+[SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ## Related Repositories
 
