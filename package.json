@@ -8,9 +8,14 @@
     "dev": "npm run dev --workspace @yieldshield-lite/web",
     "build": "npm run build --workspace @yieldshield-lite/web",
     "preview": "npm run preview --workspace @yieldshield-lite/web",
+    "test": "npm run test:web && npm run test:points",
+    "test:web": "npm run test --workspace @yieldshield-lite/web",
+    "test:points": "npm run test --workspace @yieldshield-lite/points-sqd",
     "points:export:sample": "npm run export:local --workspace @yieldshield-lite/points-sqd -- --input packages/points-sqd/examples/actions.sample.json --output /tmp/yieldshield-lite-points --chain-id 421614",
     "points:export:sample:web": "npm run export:local --workspace @yieldshield-lite/points-sqd -- --input packages/points-sqd/examples/actions.sample.json --output apps/web/public/points-snapshots --chain-id 421614 --from-block 235206800 --finalized-block 235206900 --finalized-block-timestamp 2026-04-09T10:05:00.000Z --generated-at 2026-04-09T10:05:00.000Z",
-    "typecheck": "npm run typecheck --workspace @yieldshield-lite/web"
+    "typecheck": "npm run typecheck:web && npm run typecheck:points",
+    "typecheck:web": "npm run typecheck --workspace @yieldshield-lite/web",
+    "typecheck:points": "npm run typecheck --workspace @yieldshield-lite/points-sqd"
   },
   "workspaces": [
     "apps/*",

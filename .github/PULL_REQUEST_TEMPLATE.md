@@ -4,10 +4,8 @@
 
 ## Validation
 
-- [ ] `npm run typecheck --workspace @yieldshield-lite/web`
-- [ ] `npm run typecheck --workspace @yieldshield-lite/points-sqd`
-- [ ] `npm run test --workspace @yieldshield-lite/web`
-- [ ] `npm run test --workspace @yieldshield-lite/points-sqd`
+- [ ] `npm run typecheck`
+- [ ] `npm test`
 - [ ] `npm run build --workspace @yieldshield-lite/web`
 
 ## Checklist

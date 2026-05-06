@@ -47,10 +47,8 @@ changes and link related issues when available.
 Before opening a pull request, run the checks that match your change:
 
 ```bash
-npm run typecheck --workspace @yieldshield-lite/web
-npm run typecheck --workspace @yieldshield-lite/points-sqd
-npm run test --workspace @yieldshield-lite/web
-npm run test --workspace @yieldshield-lite/points-sqd
+npm run typecheck
+npm test
 npm run build --workspace @yieldshield-lite/web
 ```
 
