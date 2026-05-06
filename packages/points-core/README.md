@@ -1,4 +1,4 @@
-# @yieldshield-lite/points-core
+# @yieldshield/points-core
 
 Shared points rules, event normalization, and snapshot contracts for YieldShield
 Lite.

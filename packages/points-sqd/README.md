@@ -1,6 +1,6 @@
-# @yieldshield-lite/points-sqd
+# @yieldshield/points-sqd
 
-SQD-based points indexer and snapshot exporter scaffold for YieldShield Lite.
+SQD-based points indexer and snapshot exporter scaffold for YieldShield front end.
 The browser now computes connected-wallet points by default; this package
 produces fallback/global snapshots for rank, leaderboard, totals, and recovery
 when browser RPC scanning fails.
@@ -8,7 +8,7 @@ when browser RPC scanning fails.
 This package is responsible for:
 
 - indexing YieldShield protocol events from Arbitrum Sepolia
-- applying shared rules from `@yieldshield-lite/points-core`
+- applying shared rules from `@yieldshield/points-core`
 - exporting static snapshot JSON consumed by the frontend
 
 ## Planned Runtime Outputs
@@ -52,7 +52,7 @@ Deferred until rules are formalized:
 
 1. Configure the SQD processor for the factory, pool template contracts, and governor.
 2. Materialize raw action events into a normalized per-user ledger.
-3. Apply points rules from `@yieldshield-lite/points-core` to build user totals, quest completions, and streak rows.
+3. Apply points rules from `@yieldshield/points-core` to build user totals, quest completions, and streak rows.
 4. Export static snapshots and a deterministic manifest that match the browser contract.
 5. Publish snapshots to IPFS and resolve the latest CID through DNSLink gateway failover, with an on-chain registry left as an optional future governance path.
 
@@ -67,9 +67,9 @@ Phase 1 is now wired in this repo with:
 You can generate snapshots from a normalized actions file with:
 
 ```bash
-npm run export:local --workspace @yieldshield-lite/points-sqd -- \
+npm run export:local --workspace @yieldshield/points-sqd -- \
   --input packages/points-sqd/examples/actions.sample.json \
-  --output /tmp/yieldshield-lite-points \
+  --output /tmp/yieldshield-front-end-points \
   --chain-id 421614 \
   --from-block 235206800 \
   --finalized-block 235206900 \
@@ -87,7 +87,7 @@ The live exporter reads finalized chain data through SQD gateway and/or RPC, the
 writes the same deterministic snapshot contract:
 
 ```bash
-npm run export:sqd --workspace @yieldshield-lite/points-sqd -- \
+npm run export:sqd --workspace @yieldshield/points-sqd -- \
   --output ./dist/snapshots \
   --gateway-url https://v2.archive.subsquid.io/network/arbitrum-sepolia \
   --rpc-url <public-or-private-rpc-url> \
@@ -108,7 +108,7 @@ Publish any completed snapshot directory with a local Kubo-compatible `ipfs`
 binary:
 
 ```bash
-npm run publish:ipfs --workspace @yieldshield-lite/points-sqd -- \
+npm run publish:ipfs --workspace @yieldshield/points-sqd -- \
   --dir ./dist/snapshots
 ```
 

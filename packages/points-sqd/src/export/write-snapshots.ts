@@ -13,7 +13,7 @@ import type {
   UserPoints,
   UserPointsSnapshot,
   UserStreakInfo,
-} from "@yieldshield-lite/points-core";
+} from "@yieldshield/points-core";
 import type { ApplyPointsResult } from "../compute/apply-points";
 import type { IndexedAction } from "../model/types";
 

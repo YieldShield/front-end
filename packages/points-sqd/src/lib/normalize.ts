@@ -5,4 +5,4 @@ export {
   toIsoTimestamp,
   toNumber,
   toStringValue,
-} from "@yieldshield-lite/points-core";
+} from "@yieldshield/points-core";

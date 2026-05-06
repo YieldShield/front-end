@@ -1,2 +1,2 @@
-export { applyPoints } from "@yieldshield-lite/points-core";
-export type { ApplyPointsResult } from "@yieldshield-lite/points-core";
+export { applyPoints } from "@yieldshield/points-core";
+export type { ApplyPointsResult } from "@yieldshield/points-core";

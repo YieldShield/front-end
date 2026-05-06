@@ -1,5 +1,5 @@
 {
-  "name": "@yieldshield-lite/web",
+  "name": "@yieldshield/front-end-web",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -18,7 +18,7 @@
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@tanstack/react-query": "^5.90.11",
     "@types/mdx": "^2.0.13",
-    "@yieldshield-lite/points-core": "file:../../packages/points-core",
+    "@yieldshield/points-core": "file:../../packages/points-core",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-hot-toast": "^2.6.0",

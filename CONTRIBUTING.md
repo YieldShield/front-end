@@ -49,7 +49,7 @@ Before opening a pull request, run the checks that match your change:
 ```bash
 npm run typecheck
 npm test
-npm run build --workspace @yieldshield-lite/web
+npm run build --workspace @yieldshield/front-end-web
 ```
 
 Documentation-only changes do not need the full build, but they should still be

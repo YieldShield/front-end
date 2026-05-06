@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PointsSnapshotManifest } from "@yieldshield-lite/points-core";
+import type { PointsSnapshotManifest } from "@yieldshield/points-core";
 import { privateKeyToAccount } from "viem/accounts";
 import { createManifestSignatureMessage, validateManifestText } from "./snapshot-manifest";
 

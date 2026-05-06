@@ -13,7 +13,7 @@ cron jobs, API routes, or private-key automation.
   the frontend.
 
 Personal wallet points can run without snapshots. The browser scans finalized
-logs for the connected wallet and applies `@yieldshield-lite/points-core` rules
+logs for the connected wallet and applies `@yieldshield/points-core` rules
 locally. Snapshot data is for global views and fallback.
 
 ## Prerequisites
@@ -165,7 +165,7 @@ publish step points at the same files:
 ```bash
 SNAPSHOT_DIR="$PWD/.tmp/points-snapshots"
 
-npm run export:sqd --workspace @yieldshield-lite/points-sqd -- \
+npm run export:sqd --workspace @yieldshield/points-sqd -- \
   --output "$SNAPSHOT_DIR" \
   --gateway-url https://v2.archive.subsquid.io/network/arbitrum-sepolia \
   --rpc-url <rpc-url> \
@@ -181,7 +181,7 @@ environment you are publishing.
 If you start after historical `PoolCreated` events, include known pools:
 
 ```bash
-npm run export:sqd --workspace @yieldshield-lite/points-sqd -- \
+npm run export:sqd --workspace @yieldshield/points-sqd -- \
   --output "$SNAPSHOT_DIR" \
   --rpc-url <rpc-url> \
   --from-block <later-start-block> \
@@ -204,7 +204,7 @@ Use the bundled publisher instead of `ipfs add -r` directly on a reused output
 directory:
 
 ```bash
-npm run publish:ipfs --workspace @yieldshield-lite/points-sqd -- \
+npm run publish:ipfs --workspace @yieldshield/points-sqd -- \
   --dir "$SNAPSHOT_DIR"
 ```
 

@@ -1,6 +1,6 @@
-# YieldShield Lite
+# YieldShield Front End
 
-YieldShield Lite is an IPFS-first frontend for the YieldShield protocol that
+YieldShield front end is an IPFS-first browser app for the YieldShield protocol that
 keeps the visual identity, landing page structure, and product shell of the
 existing YieldShield site while removing the hosted-runtime assumptions that do
 not fit static deployment.
@@ -17,7 +17,7 @@ depends on request-time Next.js behavior, internal API routes, server-side
 Ponder wrappers, Dynamic wallet auth, and other features that do not map
 cleanly to static IPFS hosting.
 
-YieldShield Lite starts from the opposite direction:
+YieldShield front end starts from the opposite direction:
 
 - static-first build output
 - reuse the existing YieldShield design wherever IPFS does not constrain it
@@ -34,7 +34,7 @@ The current app mirrors the familiar YieldShield route structure:
 - `/dapp` for the yield-focused entry point
 - `/dashboard` for pool browsing
 - `/governance` for governance status
-- `/docs` for IPFS-lite scope and migration notes
+- `/docs` for IPFS-first scope and migration notes
 
 Under the hood, the implementation is different from the old site:
 
@@ -111,10 +111,18 @@ Next up:
 3. direct-browser replacements for remaining hosted helpers
 4. IPFS deployment hardening and release polish
 
+## Community
+
+- License: MIT, see [`LICENSE`](LICENSE).
+- Contributing: see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- Security reports: see [`SECURITY.md`](SECURITY.md).
+- Support: see [`SUPPORT.md`](SUPPORT.md).
+- Maintainers and release expectations: see [`MAINTAINERS.md`](MAINTAINERS.md).
+
 ## Local Development
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -126,9 +134,10 @@ Current root scripts:
 - `npm run build`
 - `npm run preview`
 - `npm run typecheck`
+- `npm test`
 
 Copy `.env.example` to `.env` and fill in at least the WalletConnect project ID
-when you want full wallet connector support. The lite app defaults Arbitrum
+when you want full wallet connector support. The browser app defaults Arbitrum
 Sepolia reads to a Chainlist-listed public RPC fallback list that works for
 browser log scans. You can override or extend that list with public endpoints if
 one of the shared fallbacks is rate-limited. Keep private API-key RPCs out of
@@ -182,3 +191,9 @@ browser without secrets.
   <https://github.com/YieldShield/yieldshield/tree/main/packages/foundry>
 - IPFS research note:
   <https://github.com/YieldShield/yieldshield/blob/ipfs-hosting/docs/IPFS_HOSTING_RESEARCH_2026-03-27.md>
+
+## Provenance
+
+This repository was initialized from
+`YieldShield/yieldshield-lite@87433b63b91531792291d4d9231e7bad90f862a2` as a
+single root commit without importing prior Git history.

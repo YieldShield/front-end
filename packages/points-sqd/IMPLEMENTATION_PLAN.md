@@ -7,7 +7,7 @@ build sequence for this repository.
 
 1. Frontend provider seam for points data.
 2. Snapshot-capable browser provider and snapshot JSON contract.
-3. Shared `@yieldshield-lite/points-core` workspace package.
+3. Shared `@yieldshield/points-core` workspace package.
 4. SQD workspace scaffold.
 5. Protocol ABI and event normalization wiring.
 6. Deterministic ledger materialization for quests, repeatables, and streaks.

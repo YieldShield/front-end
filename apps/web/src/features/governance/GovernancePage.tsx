@@ -96,7 +96,7 @@ export function GovernancePage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Governance</h1>
         <p className="text-base-content/70">
-          YieldShield Lite keeps the original governance workspace and reads live state from the governor, token,
+          YieldShield front end keeps the original governance workspace and reads live state from the governor, token,
           timelock, and factory contracts. Direct proposal writes and delegation updates stay visibly in place, but
           remain gated until the wallet-safe mutation pass is finished.
         </p>

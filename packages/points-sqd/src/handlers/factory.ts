@@ -1,2 +1,2 @@
-export { FACTORY_EVENT_NAMES, handleFactoryEvent } from "@yieldshield-lite/points-core";
-export type { PoolCreatedArgs } from "@yieldshield-lite/points-core";
+export { FACTORY_EVENT_NAMES, handleFactoryEvent } from "@yieldshield/points-core";
+export type { PoolCreatedArgs } from "@yieldshield/points-core";

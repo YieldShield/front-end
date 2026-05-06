@@ -8,7 +8,7 @@ import type {
   UserPoints,
   UserPointsSnapshot,
   UserStreakInfo,
-} from "@yieldshield-lite/points-core";
+} from "@yieldshield/points-core";
 
 export type {
   PointsLeaderboardSnapshot,
@@ -20,7 +20,7 @@ export type {
   UserPoints,
   UserPointsSnapshot,
   UserStreakInfo,
-} from "@yieldshield-lite/points-core";
+} from "@yieldshield/points-core";
 
 export type PointsGlobalStats = {
   totalUsers: number;

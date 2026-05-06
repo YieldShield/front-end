@@ -1,5 +1,5 @@
 {
-  "name": "@yieldshield-lite/points-sqd",
+  "name": "@yieldshield/points-sqd",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@subsquid/evm-processor": "^1.29.0",
-    "@yieldshield-lite/points-core": "file:../points-core",
+    "@yieldshield/points-core": "file:../points-core",
     "viem": "^2.47.11"
   },
   "devDependencies": {

@@ -37,7 +37,7 @@ Status: complete
 - pool list
 - pool detail
 - governance overview (read-only; writes deferred to post-V1)
-- docs page for supported and removed IPFS-lite features
+- docs page for supported and removed IPFS-first features
 - points, quests, streaks, leaderboard via optional indexed data
 
 ## Milestone 5: Transaction Flows

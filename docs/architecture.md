@@ -23,7 +23,7 @@ The app should not rely on:
 
 ## Decentralized Points Model
 
-YieldShield Lite defaults to computing personal points in the browser for the
+YieldShield front end defaults to computing personal points in the browser for the
 connected wallet only. It does not require a live points backend to show a
 user's own points, quests, or streak.
 
@@ -69,7 +69,7 @@ governance trail.
 
 The migration is not meant to invent a new brand or product shell.
 
-Wherever possible, the lite app should reuse or faithfully port:
+Wherever possible, the browser app should reuse or faithfully port:
 
 - the public header and footer
 - the landing-page composition

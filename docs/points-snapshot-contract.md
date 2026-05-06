@@ -1,6 +1,6 @@
 # Points Snapshot Contract
 
-YieldShield Lite can consume points data from static JSON snapshots instead of a
+YieldShield front end can consume points data from static JSON snapshots instead of a
 live GraphQL endpoint.
 
 ## Base URL Layout

@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { POINTS_RULES_VERSION, type IndexedAction } from "@yieldshield-lite/points-core";
+import { POINTS_RULES_VERSION, type IndexedAction } from "@yieldshield/points-core";
 
 const CACHE_VERSION = "browser-wallet-v1";
 const STORAGE_PREFIX = "yieldshield-lite:points-browser";

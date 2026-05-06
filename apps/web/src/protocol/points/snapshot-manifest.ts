@@ -2,7 +2,7 @@ import type {
   PointsSnapshotFilePath,
   PointsSnapshotManifest,
   PointsSnapshotManifestFile,
-} from "@yieldshield-lite/points-core";
+} from "@yieldshield/points-core";
 import type { Address, Hex } from "viem";
 import { verifyMessage } from "viem";
 

@@ -1,6 +1,6 @@
 # Decentralized Points Snapshots
 
-YieldShield Lite keeps the browser app deployable to IPFS by avoiding required
+YieldShield front end keeps the browser app deployable to IPFS by avoiding required
 live backend dependencies for points.
 
 ## Architecture
@@ -31,7 +31,7 @@ browser computes only the connected wallet's personal points:
   creator points when the connected wallet is the non-indexed creator
 - scans pool event logs with `topic1 == connectedWallet`, so pool activity for
   other users is not fetched or scored
-- applies the shared rules from `@yieldshield-lite/points-core`
+- applies the shared rules from `@yieldshield/points-core`
 - caches the wallet's normalized actions and scan cursor in `localStorage`
 - scans only new finalized blocks on later page loads
 
@@ -117,7 +117,7 @@ The SQD job is a runner/exporter fallback, not a required browser dependency. It
 can use an SQD gateway, a normal RPC endpoint, or both:
 
 ```bash
-npm run export:sqd --workspace @yieldshield-lite/points-sqd -- \
+npm run export:sqd --workspace @yieldshield/points-sqd -- \
   --output ./dist/snapshots \
   --gateway-url https://v2.archive.subsquid.io/network/arbitrum-sepolia \
   --rpc-url <rpc-url> \
@@ -138,12 +138,12 @@ Two runners should produce the same hashes when they use the same code, rules,
 block range, finalized block metadata, and chain data:
 
 ```bash
-npm run export:sqd --workspace @yieldshield-lite/points-sqd -- \
+npm run export:sqd --workspace @yieldshield/points-sqd -- \
   --output /tmp/yieldshield-run-a \
   --finalized-block <block> \
   --finalized-block-timestamp <iso>
 
-npm run export:sqd --workspace @yieldshield-lite/points-sqd -- \
+npm run export:sqd --workspace @yieldshield/points-sqd -- \
   --output /tmp/yieldshield-run-b \
   --finalized-block <block> \
   --finalized-block-timestamp <iso>
@@ -155,7 +155,7 @@ The automated SQD tests also lock byte-identical snapshot output for identical
 inputs:
 
 ```bash
-npm run test --workspace @yieldshield-lite/points-sqd
+npm run test --workspace @yieldshield/points-sqd
 ```
 
 ## Publish Snapshots
@@ -163,7 +163,7 @@ npm run test --workspace @yieldshield-lite/points-sqd
 Publish a completed snapshot directory to IPFS:
 
 ```bash
-npm run publish:ipfs --workspace @yieldshield-lite/points-sqd -- \
+npm run publish:ipfs --workspace @yieldshield/points-sqd -- \
   --dir ./dist/snapshots
 ```
 

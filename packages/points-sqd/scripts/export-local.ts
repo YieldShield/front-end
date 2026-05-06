@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { POINTS_RULES_VERSION } from "@yieldshield-lite/points-core";
+import { POINTS_RULES_VERSION } from "@yieldshield/points-core";
 import packageJson from "../package.json" with { type: "json" };
 import { applyPoints, hashIndexedActions, writeSnapshots } from "../src/index.js";
 import type { IndexedAction } from "../src/model/types.js";

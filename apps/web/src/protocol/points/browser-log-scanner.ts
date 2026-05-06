@@ -24,7 +24,7 @@ import {
   type UserPoints,
   type UserPointsSnapshot,
   type UserStreakInfo,
-} from "@yieldshield-lite/points-core";
+} from "@yieldshield/points-core";
 import { getDefaultProtocolChain, getProtocolChainById, getProtocolReadClient } from "../networks";
 import {
   getBrowserWalletPointsCacheKey,

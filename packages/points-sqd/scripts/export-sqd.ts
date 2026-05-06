@@ -1,5 +1,5 @@
 import { EvmBatchProcessor, type BlockData, type FieldSelection, type Log } from "@subsquid/evm-processor";
-import { POINTS_RULES_VERSION } from "@yieldshield-lite/points-core";
+import { POINTS_RULES_VERSION } from "@yieldshield/points-core";
 import packageJson from "../package.json" with { type: "json" };
 import {
   applyPoints,

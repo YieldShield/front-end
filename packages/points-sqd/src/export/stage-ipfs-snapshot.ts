@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdtemp, mkdir, readFile, rm, copyFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
-import type { PointsSnapshotManifest, PointsSnapshotManifestFile } from "@yieldshield-lite/points-core";
+import type { PointsSnapshotManifest, PointsSnapshotManifestFile } from "@yieldshield/points-core";
 
 export type StagedIpfsSnapshot = {
   sourceDir: string;

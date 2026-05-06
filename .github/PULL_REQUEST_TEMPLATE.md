@@ -6,7 +6,7 @@
 
 - [ ] `npm run typecheck`
 - [ ] `npm test`
-- [ ] `npm run build --workspace @yieldshield-lite/web`
+- [ ] `npm run build --workspace @yieldshield/front-end-web`
 
 ## Checklist
 

@@ -12,4 +12,4 @@ export type {
   ProcessorContract,
   SupportedEventName,
   UserLedgerRow,
-} from "@yieldshield-lite/points-core";
+} from "@yieldshield/points-core";
