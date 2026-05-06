@@ -2,6 +2,7 @@
   "name": "yieldshield-lite",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "IPFS-first YieldShield frontend",
   "scripts": {
     "dev": "npm run dev --workspace @yieldshield-lite/web",
