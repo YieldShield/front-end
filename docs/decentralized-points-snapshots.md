@@ -3,6 +3,10 @@
 YieldShield front end keeps the browser app deployable to IPFS by avoiding required
 live backend dependencies for points.
 
+Points data is advisory off-chain scoring unless a separate official program
+says otherwise. Points snapshots do not represent tokens, claims, rewards, or
+entitlement by themselves.
+
 ## Architecture
 
 ```text

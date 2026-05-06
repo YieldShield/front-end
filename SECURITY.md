@@ -20,6 +20,9 @@ security-sensitive. If a report crosses from the front end into contracts or
 governance, report it privately and mention the affected contract, chain, and
 address when known.
 
+For the repository's current frontend-specific trust boundaries, see
+[`docs/security/frontend-threat-model.md`](docs/security/frontend-threat-model.md).
+
 ## Reporting a Vulnerability
 
 Use GitHub's private vulnerability reporting for this repository when it is

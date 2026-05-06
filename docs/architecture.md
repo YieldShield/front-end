@@ -52,9 +52,10 @@ SQD raw chain data
 
 The custom YieldShield points exporter still runs as normal compute outside
 IPFS, for example in CI, on a VPS, or by independent community operators.
-No-single-point-of-failure comes from browser-side personal computation,
-deterministic snapshots for global views, multiple runners, IPFS
-publication/pinning, and a decentralized latest-snapshot discovery layer.
+The design reduces reliance on a single hosted backend through browser-side
+personal computation, deterministic snapshots for global views, multiple
+runners, IPFS publication/pinning, and a decentralized latest-snapshot discovery
+layer.
 
 The browser should never need a privileged SQD, Ponder, or Graph gateway key.
 For local and embedded IPFS tests, `VITE_POINTS_PROVIDER=browser` can be paired

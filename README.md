@@ -127,6 +127,23 @@ Next up:
 - Maintainers and release expectations: see [`MAINTAINERS.md`](MAINTAINERS.md).
 - Release process: see [`RELEASE.md`](RELEASE.md).
 
+## Security and Risk
+
+This repository is a frontend for an experimental, pre-production protocol
+deployment. The current configuration targets Arbitrum Sepolia and should not be
+treated as a mainnet production release or as a place for production funds.
+
+- Frontend environment variables are public after build time.
+- Public RPCs, gateways, and hosted indexers are treated as untrusted inputs.
+- Contract reads and writes are the source of truth for transaction-critical
+  flows.
+- Points data is advisory off-chain scoring unless a separate official program
+  says otherwise.
+- This repository is not financial, legal, tax, or investment advice.
+
+For more detail, see
+[`docs/security/frontend-threat-model.md`](docs/security/frontend-threat-model.md).
+
 ## Local Development
 
 ```bash

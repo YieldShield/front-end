@@ -3,6 +3,10 @@
 YieldShield front end can consume points data from static JSON snapshots instead of a
 live GraphQL endpoint.
 
+Points data is advisory off-chain scoring unless a separate official program
+says otherwise. Snapshot files do not represent tokens, claims, rewards, or
+entitlement by themselves.
+
 ## Base URL Layout
 
 The frontend expects a base URL from `VITE_POINTS_SNAPSHOT_BASE_URL` with the
