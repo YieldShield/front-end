@@ -1,0 +1,66 @@
+name: Bug report
+description: Report a reproducible problem in the YieldShield front end.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve YieldShield. Do not include private keys,
+        seed phrases, API keys, or security vulnerability details.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the route, wallet state, chain, and exact actions.
+      placeholder: |
+        1. Go to ...
+        2. Connect ...
+        3. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit or deployed URL
+      placeholder: main@abcdef0 or https://...
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 123, Safari 17, Firefox 124
+  - type: input
+    id: wallet
+    attributes:
+      label: Wallet
+      placeholder: MetaMask, Rabby, WalletConnect, etc.
+  - type: input
+    id: chain
+    attributes:
+      label: Chain or network
+      placeholder: Arbitrum Sepolia, local 31337, etc.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, screenshots, or extra context
+      description: Redact addresses or values if needed.

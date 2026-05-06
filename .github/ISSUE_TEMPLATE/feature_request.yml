@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest an improvement that fits the IPFS-first frontend.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or contributor problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior, route, or workflow you want.
+    validations:
+      required: true
+  - type: textarea
+    id: ipfs
+    attributes:
+      label: IPFS/static-hosting impact
+      description: Does this require secrets, server runtime, cron jobs, mutable storage, or API routes?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
