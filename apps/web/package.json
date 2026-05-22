@@ -16,7 +16,7 @@
     "@mdx-js/rollup": "^3.1.1",
     "@pythnetwork/hermes-client": "^3.1.0",
     "@rainbow-me/rainbowkit": "^2.2.11",
-    "@tanstack/react-query": "^5.100.10",
+    "@tanstack/react-query": "^5.100.11",
     "@types/mdx": "^2.0.13",
     "@yieldshield/points-core": "file:../../packages/points-core",
     "react": "^19.2.6",
@@ -26,7 +26,7 @@
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
-    "viem": "^2.49.2",
+    "viem": "^2.50.4",
     "wagmi": "^3.6.15"
   },
   "devDependencies": {
