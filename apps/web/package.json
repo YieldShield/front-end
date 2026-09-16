@@ -19,6 +19,7 @@
     "@tanstack/react-query": "^5.101.4",
     "@types/mdx": "^2.0.14",
     "@yieldshield/points-core": "file:../../packages/points-core",
+    "axios": "^1.20.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hot-toast": "^2.6.0",
@@ -27,7 +28,7 @@
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
     "viem": "^2.55.10",
-    "wagmi": "^3.7.4"
+    "wagmi": "^2.19.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
