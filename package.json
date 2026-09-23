@@ -47,7 +47,7 @@
   },
   "packageManager": "npm@11.9.0",
   "devDependencies": {
-    "prettier": "^3.9.6"
+    "prettier": "^3.9.8"
   },
   "overrides": {
     "axios": "^1.20.0",
