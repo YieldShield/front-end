@@ -7,6 +7,10 @@ updates:
     labels:
       - dependencies
     open-pull-requests-limit: 5
+    # RainbowKit 2 requires Wagmi 2; upgrade these together when supported.
+    ignore:
+      - dependency-name: wagmi
+        update-types: ["version-update:semver-major"]
     groups:
       production-dependencies:
         dependency-type: production
