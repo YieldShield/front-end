@@ -1,3 +1,5 @@
+![YieldShield Front End — An IPFS-first protocol interface.](.github/assets/banner.png)
+
 # YieldShield Front End
 
 [![CI](https://github.com/YieldShield/front-end/actions/workflows/ci.yml/badge.svg)](https://github.com/YieldShield/front-end/actions/workflows/ci.yml)
