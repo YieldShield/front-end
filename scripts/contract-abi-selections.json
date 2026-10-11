@@ -1,0 +1,396 @@
+{
+  "FACTORY_ABI": {
+    "contract": "SplitRiskPoolFactory",
+    "entries": [
+      {
+        "type": "function",
+        "name": "compositeOracle",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "createPool",
+        "inputs": [
+          "address",
+          "string",
+          "address",
+          "string",
+          "uint256",
+          "uint256",
+          "uint256",
+          "uint256"
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getPoolInfo",
+        "inputs": ["address"]
+      },
+      {
+        "type": "function",
+        "name": "getPools",
+        "inputs": ["uint256", "uint256"]
+      },
+      {
+        "type": "function",
+        "name": "getWhitelistedTokens",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "minimumCreationBondUsd",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "poolCount",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "pools",
+        "inputs": ["uint256"]
+      },
+      {
+        "type": "error",
+        "name": "CollateralBelowTokenMinimum",
+        "inputs": ["uint256", "uint256"]
+      },
+      {
+        "type": "error",
+        "name": "CreationBondBelowMinimum",
+        "inputs": ["uint256", "uint256"]
+      },
+      {
+        "type": "error",
+        "name": "InitialCreationBondRequired",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "InvalidAssetAddress",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "InvalidBackingTokenSymbols",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "InvalidCollateralRatio",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "InvalidShieldedTokenSymbol",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "InvalidTokenDecimals",
+        "inputs": ["address", "uint8"]
+      },
+      {
+        "type": "error",
+        "name": "MaxPoolsExceeded",
+        "inputs": ["uint256", "uint256"]
+      },
+      {
+        "type": "error",
+        "name": "TokenNotWhitelisted",
+        "inputs": []
+      }
+    ]
+  },
+  "POOL_ABI": {
+    "contract": "SplitRiskPool",
+    "entries": [
+      {
+        "type": "function",
+        "name": "cancelUnlockProcess",
+        "inputs": ["uint256"]
+      },
+      {
+        "type": "function",
+        "name": "claimCommission",
+        "inputs": ["uint256"]
+      },
+      {
+        "type": "function",
+        "name": "claimRewards",
+        "inputs": ["uint256"]
+      },
+      {
+        "type": "function",
+        "name": "depositBackingAsset",
+        "inputs": ["address", "uint256", "uint256"]
+      },
+      {
+        "type": "function",
+        "name": "depositShieldedAsset",
+        "inputs": ["address", "uint256", "uint256"]
+      },
+      {
+        "type": "function",
+        "name": "getPoolBalances",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "getProtectorDepositInfo",
+        "inputs": ["uint256"]
+      },
+      {
+        "type": "function",
+        "name": "getShieldDepositInfo",
+        "inputs": ["uint256"]
+      },
+      {
+        "type": "function",
+        "name": "getUserNFTCounts",
+        "inputs": ["address"]
+      },
+      {
+        "type": "function",
+        "name": "partialWithdrawShielded",
+        "inputs": ["uint256", "uint256", "address", "uint256"]
+      },
+      {
+        "type": "function",
+        "name": "poolConfig",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "protectorReceiptNFT",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "protectorWithdraw",
+        "inputs": ["uint256", "uint256", "address", "uint256"]
+      },
+      {
+        "type": "function",
+        "name": "shieldReceiptNFT",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "shieldedWithdraw",
+        "inputs": ["uint256", "address", "uint256"]
+      },
+      {
+        "type": "function",
+        "name": "startUnlockProcess",
+        "inputs": ["uint256"]
+      },
+      {
+        "type": "error",
+        "name": "AccessControlDenied",
+        "inputs": ["address", "string"]
+      },
+      {
+        "type": "error",
+        "name": "DepositAmountTooLarge",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "EnforcedPause",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "EtherTransferNotAllowed",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "InsufficientDepositAmount",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "InsufficientProtectorTokenBalance",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "InsufficientTokenBalance",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "InvalidOraclePrice",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "SlippageProtectionFailed",
+        "inputs": ["uint256", "uint256"]
+      },
+      {
+        "type": "error",
+        "name": "TVLLimitExceeded",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "TransferOperationFailed",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "UnsupportedAsset",
+        "inputs": []
+      }
+    ]
+  },
+  "GOVERNANCE_TOKEN_ABI": {
+    "contract": "YSToken",
+    "entries": [
+      {
+        "type": "function",
+        "name": "balanceOf",
+        "inputs": ["address"]
+      },
+      {
+        "type": "function",
+        "name": "delegates",
+        "inputs": ["address"]
+      },
+      {
+        "type": "function",
+        "name": "getVotes",
+        "inputs": ["address"]
+      }
+    ]
+  },
+  "GOVERNOR_ABI": {
+    "contract": "YSGovernor",
+    "entries": [
+      {
+        "type": "function",
+        "name": "proposalThreshold",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "proposalVotes",
+        "inputs": ["uint256"]
+      },
+      {
+        "type": "function",
+        "name": "quorum",
+        "inputs": ["uint256"]
+      },
+      {
+        "type": "function",
+        "name": "state",
+        "inputs": ["uint256"]
+      },
+      {
+        "type": "function",
+        "name": "votingDelay",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "votingPeriod",
+        "inputs": []
+      }
+    ]
+  },
+  "TIMELOCK_ABI": {
+    "contract": "YSTimelockController",
+    "entries": [
+      {
+        "type": "function",
+        "name": "getMinDelay",
+        "inputs": []
+      }
+    ]
+  },
+  "ORACLE_ABI": {
+    "contract": "CompositeOracle",
+    "entries": [
+      {
+        "type": "function",
+        "name": "getPrice",
+        "inputs": ["address"]
+      },
+      {
+        "type": "function",
+        "name": "getValue",
+        "inputs": ["address", "uint256"]
+      },
+      {
+        "type": "function",
+        "name": "isPriceStale",
+        "inputs": ["address"]
+      }
+    ]
+  },
+  "PYTH_ORACLE_ABI": {
+    "contract": "PythOracle",
+    "entries": [
+      {
+        "type": "function",
+        "name": "getUpdateFee",
+        "inputs": ["bytes[]"]
+      },
+      {
+        "type": "function",
+        "name": "tokenToPriceFeedId",
+        "inputs": ["address"]
+      },
+      {
+        "type": "function",
+        "name": "updatePriceFeeds",
+        "inputs": ["bytes[]"]
+      }
+    ]
+  },
+  "RECEIPT_NFT_ABI": {
+    "contract": "ShieldReceiptNFT",
+    "entries": [
+      {
+        "type": "function",
+        "name": "nextTokenId",
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "ownerOf",
+        "inputs": ["uint256"]
+      }
+    ]
+  },
+  "FAUCET_ABI": {
+    "contract": "ConfigurableTokenFaucet",
+    "entries": [
+      {
+        "type": "function",
+        "name": "canDrip",
+        "inputs": ["address", "address"]
+      },
+      {
+        "type": "function",
+        "name": "drip",
+        "inputs": ["address", "address"]
+      },
+      {
+        "type": "function",
+        "name": "dripAll",
+        "inputs": ["address"]
+      },
+      {
+        "type": "function",
+        "name": "getAllTokens",
+        "inputs": []
+      }
+    ]
+  }
+}

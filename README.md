@@ -284,3 +284,15 @@ This repository was initialized from
 single root commit without importing prior Git history.
 
 See [`NOTICE`](NOTICE) for repository provenance and licensing notes.
+
+## Smart-contract interface compatibility
+
+The current-source ABI revision is recorded in `smart-contracts-source.json`.
+Regenerate the browser and indexer subsets after compiling that revision with
+`YS_EVM_OUT_DIR=/path/to/smart-contracts/out npm run sync:contracts`.
+
+Existing staging addresses retain `contractVersion: "legacy-s1"` in
+`apps/web/src/protocol/networks.ts`. A deployment of the current contract source
+must explicitly use `contractVersion: "current"` and its verified addresses; that
+mode uses creation bonds, paginated pool discovery, and current receipt decoding.
+Updating this repository does not update on-chain bytecode.

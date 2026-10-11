@@ -103,7 +103,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "tokensIssued",
+        "name": "receiptTokenId",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -122,7 +122,7 @@
         "internalType": "address"
       },
       {
-        "name": "amount",
+        "name": "feesCharged",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -190,7 +190,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "tokensIssued",
+        "name": "receiptTokenId",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"

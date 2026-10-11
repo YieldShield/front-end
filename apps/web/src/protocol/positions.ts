@@ -1,6 +1,7 @@
 import { type Address } from "viem";
 import { POOL_ABI, RECEIPT_NFT_ABI } from "./abi";
-import { getProtocolReadClient } from "./networks";
+import { LEGACY_POOL_ABI } from "./legacy-abi";
+import { getProtocolChainById, getProtocolReadClient } from "./networks";
 import { discoverPoolAddresses } from "./pools";
 import { isPointsConfigured } from "./points";
 import { appEnv } from "../config/env";
@@ -101,6 +102,8 @@ export async function fetchPositionsOnChain(
   poolAddresses: Address[],
 ): Promise<UserPositions> {
   const client = getProtocolReadClient(chainId);
+  const currentContracts = getProtocolChainById(chainId).contractVersion === "current";
+  const poolAbi = currentContracts ? POOL_ABI : LEGACY_POOL_ABI;
   const shieldPositions: ShieldPosition[] = [];
   const protectorPositions: ProtectorPosition[] = [];
 
@@ -111,7 +114,7 @@ export async function fetchPositionsOnChain(
     try {
       const counts = (await client.readContract({
         address: poolAddress,
-        abi: POOL_ABI,
+        abi: poolAbi,
         functionName: "getUserNFTCounts",
         args: [userAddress],
       })) as [bigint, bigint];
@@ -127,8 +130,8 @@ export async function fetchPositionsOnChain(
     const [shieldNftResult, protectorNftResult] = await client.multicall({
       allowFailure: true,
       contracts: [
-        { address: poolAddress, abi: POOL_ABI, functionName: "shieldReceiptNFT" as const },
-        { address: poolAddress, abi: POOL_ABI, functionName: "protectorReceiptNFT" as const },
+        { address: poolAddress, abi: poolAbi, functionName: "shieldReceiptNFT" as const },
+        { address: poolAddress, abi: poolAbi, functionName: "protectorReceiptNFT" as const },
       ],
     });
 
@@ -142,7 +145,7 @@ export async function fetchPositionsOnChain(
           allowFailure: true,
           contracts: ownedIds.map(tokenId => ({
             address: poolAddress,
-            abi: POOL_ABI,
+            abi: poolAbi,
             functionName: "getShieldDepositInfo" as const,
             args: [tokenId] as const,
           })),
@@ -151,8 +154,8 @@ export async function fetchPositionsOnChain(
         for (let i = 0; i < ownedIds.length; i++) {
           const result = infoResults[i];
           if (result?.status !== "success") continue;
-          const [amount, depositTime, valueAtDeposit, lastFeeClaimTime, isWithdrawn] =
-            result.result as [bigint, bigint, bigint, bigint, boolean];
+          const [amount, depositTime, valueAtDeposit, lastFeeClaimTime, withdrawn] =
+            result.result as readonly [bigint, bigint, bigint, bigint, boolean?];
 
           shieldPositions.push({
             tokenId: ownedIds[i],
@@ -161,7 +164,7 @@ export async function fetchPositionsOnChain(
             depositTime: Number(depositTime),
             valueAtDeposit,
             lastFeeClaimTime: Number(lastFeeClaimTime),
-            isWithdrawn,
+            isWithdrawn: currentContracts ? false : (withdrawn ?? false),
           });
         }
       }
@@ -177,7 +180,7 @@ export async function fetchPositionsOnChain(
           allowFailure: true,
           contracts: ownedIds.map(tokenId => ({
             address: poolAddress,
-            abi: POOL_ABI,
+            abi: poolAbi,
             functionName: "getProtectorDepositInfo" as const,
             args: [tokenId] as const,
           })),
@@ -187,7 +190,7 @@ export async function fetchPositionsOnChain(
           const result = infoResults[i];
           if (result?.status !== "success") continue;
           const [amount, depositTime, unlockRequestTime, lockedAmount, availableAmount, claimableCommission] =
-            result.result as [bigint, bigint, bigint, bigint, bigint, bigint];
+            result.result;
 
           protectorPositions.push({
             tokenId: ownedIds[i],
