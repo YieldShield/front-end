@@ -138,6 +138,9 @@ describe("createPool bond transaction flow", () => {
       functionName: "createPool",
       args: creationArgs,
     });
+    for (const [request] of mocks.writeContractAsync.mock.calls) {
+      expect(request).toMatchObject({ chainId: 31337, account: address(1) });
+    }
     expect(mocks.success).not.toHaveBeenCalled();
     expect(mocks.invalidateQueries).not.toHaveBeenCalled();
     receipts.get(hash(3))!({ status: "success" });

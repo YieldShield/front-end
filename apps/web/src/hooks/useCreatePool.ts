@@ -94,6 +94,8 @@ export function useCreatePool() {
           }
           setCurrentStep(2);
           const hash = await writeContractAsync({
+            chainId,
+            account: userAddress,
             address: factoryAddress,
             abi: LEGACY_FACTORY_ABI,
             functionName: "createPool",
@@ -160,6 +162,8 @@ export function useCreatePool() {
           // Tokens such as USDT require clearing an existing allowance first.
           for (const amount of allowance > 0n ? [0n, bond] : [bond]) {
             const hash = await writeContractAsync({
+              chainId,
+              account: userAddress,
               address: params.backingToken,
               abi: ERC20_ABI,
               functionName: "approve",
@@ -195,6 +199,8 @@ export function useCreatePool() {
         // Submit after the bond approval is mined.
         setCurrentStep(3);
         const result = await writeContractAsync({
+          chainId,
+          account: userAddress,
           address: factoryAddress,
           abi: FACTORY_ABI,
           functionName: "createPool",
