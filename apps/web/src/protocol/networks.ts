@@ -18,6 +18,8 @@ type ProtocolDeployment = {
 };
 
 export type ProtocolChainConfig = {
+  // Change only when deployment addresses actually implement the current interfaces.
+  contractVersion: "legacy-s1" | "current";
   id: number;
   key: ProtocolChainKey;
   label: string;
@@ -34,6 +36,7 @@ const protocolChains = {
     rpcUrl: resolveRpcUrlForChainId(arbitrumSepolia.id),
     chain: arbitrumSepolia,
     // Staging release s1.0.2 (matches staging.yieldshield.net).
+    contractVersion: "legacy-s1",
     deployment: {
       factory: "0x755C9bd97B882278E3d19D2A1e31ad522C3f6483",
       governor: "0x6E6d60fAc4FE03279652fe28ea7d837E51e091Ca",
@@ -52,6 +55,7 @@ const protocolChains = {
     label: "Local Foundry",
     rpcUrl: resolveRpcUrlForChainId(foundry.id),
     chain: foundry,
+    contractVersion: "legacy-s1",
     deployment: {
       factory: "0xfC8d2a49bFa827605Ed7dC01317fA9D9cC1bf3bB",
       governor: "0x12061Cc3c316C680723F0781bBD6FC5c16C4bB40",
@@ -62,11 +66,11 @@ const protocolChains = {
 
 const publicClients = new Map<number, ReturnType<typeof createPublicClient>>();
 
-export function getDefaultProtocolChain() {
+export function getDefaultProtocolChain(): ProtocolChainConfig {
   return protocolChains[appEnv.defaultChain as ProtocolChainKey] ?? protocolChains.arbitrumSepolia;
 }
 
-export function getProtocolChainById(chainId: number) {
+export function getProtocolChainById(chainId: number): ProtocolChainConfig {
   const chain = Object.values(protocolChains).find(candidate => candidate.id === chainId);
   return chain ?? getDefaultProtocolChain();
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { type Address } from "viem";
+import { formatUnits, type Address } from "viem";
 import { useAccount } from "wagmi";
 import { TransactionSteps } from "../../components/TransactionSteps";
 import { useCreatePool } from "../../hooks/useCreatePool";
@@ -12,15 +12,25 @@ import { getProtocolReadClient } from "../../protocol/networks";
 export function CreatePoolPage() {
   const { activeProtocolChain } = useProtocolChain();
   const chainId = activeProtocolChain.id;
+  const currentContracts = activeProtocolChain.contractVersion === "current";
   const { isConnected } = useAccount();
   const navigate = useNavigate();
   const { createPool, isCreating, steps } = useCreatePool();
 
+  const [creationBondAmount, setCreationBondAmount] = useState("");
   const [shieldedToken, setShieldedToken] = useState("");
   const [backingToken, setBackingToken] = useState("");
   const [commissionRate, setCommissionRate] = useState("100");
   const [poolFee, setPoolFee] = useState("50");
   const [collateralRatio, setCollateralRatio] = useState("15000");
+
+  const { data: minimumBondUsd } = useQuery({
+    queryKey: ["minimum-creation-bond", chainId, activeProtocolChain.deployment.factory],
+    enabled: currentContracts,
+    queryFn: () => getProtocolReadClient(chainId).readContract({
+      address: activeProtocolChain.deployment.factory, abi: FACTORY_ABI, functionName: "minimumCreationBondUsd",
+    }),
+  });
 
   const { data: whitelistedTokens } = useQuery({
     queryKey: ["whitelisted-tokens", chainId],
@@ -63,6 +73,7 @@ export function CreatePoolPage() {
         commissionRate: BigInt(commissionRate),
         poolFee: BigInt(poolFee),
         collateralRatio: BigInt(collateralRatio),
+        creationBondAmount,
       });
       navigate("/dashboard");
     } catch {
@@ -119,6 +130,16 @@ export function CreatePoolPage() {
               </select>
             </div>
 
+            {currentContracts && <div className="space-y-1">
+              <label htmlFor="creation-bond" className="text-sm font-medium">Creation bond (backing tokens)</label>
+              <input id="creation-bond" className="input input-bordered w-full" inputMode="decimal"
+                value={creationBondAmount} onChange={e => setCreationBondAmount(e.target.value)} disabled={isCreating} />
+              <p className="text-xs text-base-content/60">
+                {minimumBondUsd !== undefined ? `Minimum value: $${formatUnits(minimumBondUsd, 8)}. ` : "Loading minimum bond… "}
+                The factory holds this bond until the pool is closed or deactivated.
+              </p>
+            </div>}
+
             {/* Fee configuration */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -173,7 +194,7 @@ export function CreatePoolPage() {
             <button
               className="btn btn-primary w-full"
               onClick={handleCreate}
-              disabled={!isConnected || !shieldedToken || !backingToken || isCreating}
+              disabled={!isConnected || !shieldedToken || !backingToken || (currentContracts && !creationBondAmount) || isCreating}
             >
               {isCreating ? "Creating Pool..." : !isConnected ? "Connect Wallet" : "Create Pool"}
             </button>

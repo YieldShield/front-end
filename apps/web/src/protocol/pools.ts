@@ -1,5 +1,6 @@
 import { type Address, zeroAddress } from "viem";
 import { ERC20_METADATA_ABI, FACTORY_ABI, POOL_ABI } from "./abi";
+import { LEGACY_FACTORY_ABI } from "./legacy-abi";
 import { formatTimestamp } from "./format";
 import { getProtocolChainById, getProtocolReadClient } from "./networks";
 
@@ -48,7 +49,7 @@ export async function discoverPoolAddresses(chainId: number) {
   try {
     const activePools = (await client.readContract({
       address: protocolChain.deployment.factory,
-      abi: FACTORY_ABI,
+      abi: LEGACY_FACTORY_ABI,
       functionName: "getAllPools",
     })) as Address[];
 
