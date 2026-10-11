@@ -46,19 +46,29 @@ export async function discoverPoolAddresses(chainId: number) {
   const protocolChain = getProtocolChainById(chainId);
   const client = getProtocolReadClient(chainId);
 
-  try {
-    const activePools = (await client.readContract({
-      address: protocolChain.deployment.factory,
-      abi: LEGACY_FACTORY_ABI,
-      functionName: "getAllPools",
-    })) as Address[];
-
-    if (activePools.length > 0) {
-      return activePools;
+  if (protocolChain.contractVersion === "current") {
+    // Include historical pools whose protectors may still need to withdraw.
+    const count = await client.readContract({
+      address: protocolChain.deployment.factory, abi: FACTORY_ABI, functionName: "poolCount",
+    });
+    const addresses: Address[] = [];
+    for (let offset = 0n; offset < count; offset += 100n) {
+      const page = await client.readContract({
+        address: protocolChain.deployment.factory, abi: FACTORY_ABI,
+        functionName: "getPools", args: [offset, 100n],
+      });
+      addresses.push(...page);
     }
+    return addresses;
+  }
+
+  try {
+    const addresses = await client.readContract({
+      address: protocolChain.deployment.factory, abi: LEGACY_FACTORY_ABI, functionName: "getAllPools",
+    });
+    if (addresses.length > 0) return [...addresses];
   } catch {
-    // Some Arbitrum Sepolia deployments currently revert on active-pool helper reads.
-    // Fall through to the raw pools(index) storage getter, which still works reliably.
+    // Older staging releases require the raw-array discovery fallback.
   }
 
   const discoveredAddresses: Address[] = [];
