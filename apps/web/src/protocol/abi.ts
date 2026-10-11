@@ -310,11 +310,6 @@ export const FACTORY_ABI = [
     name: "TokenNotWhitelisted",
     inputs: [],
   },
-  {
-    type: "error",
-    name: "TokenNotWhitelisted",
-    inputs: [],
-  },
 ] as const;
 
 export const POOL_ABI = [

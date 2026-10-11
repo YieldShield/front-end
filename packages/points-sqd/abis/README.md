@@ -1,10 +1,12 @@
-# ABIs
+# Protocol event ABIs
 
-Place protocol ABIs here for:
+These event subsets are generated from the smart-contracts revision recorded in
+`smart-contracts-source.json` at the repository root. Regenerate them and the
+browser ABI subsets with:
 
-- `SplitRiskPoolFactory`
-- `SplitRiskPool`
-- `YSGovernor`
+```sh
+YS_EVM_OUT_DIR=/path/to/smart-contracts/out npm run sync:contracts
+```
 
-These should be copied from the main YieldShield monorepo deployment artifacts
-when the processor is wired up.
+Compile that source revision first. ABI updates do not change deployed contract
+addresses or on-chain bytecode.

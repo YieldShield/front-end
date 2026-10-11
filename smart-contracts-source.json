@@ -1,0 +1,5 @@
+{
+  "repository": "https://github.com/YieldShield/smart-contracts",
+  "revision": "883e625e927e12597ff72e30d5dd2ca1ce9c54ef",
+  "scope": "ABI compatibility only; configured deployment addresses and deployed bytecode are unchanged"
+}
