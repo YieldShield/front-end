@@ -27,9 +27,10 @@
     "dev": "npm run dev --workspace @yieldshield/front-end-web",
     "build": "npm run build --workspace @yieldshield/front-end-web",
     "preview": "npm run preview --workspace @yieldshield/front-end-web",
-    "test": "npm run test:web && npm run test:points",
+    "test": "npm run test:web && npm run test:points && npm run test:vendor",
     "test:web": "npm run test --workspace @yieldshield/front-end-web",
     "test:points": "npm run test --workspace @yieldshield/points-sqd",
+    "test:vendor": "node vendor/anymatch/test.js",
     "format": "prettier --write \"**/*.{md,json,yml,yaml,css,mjs}\"",
     "format:check": "prettier --check \"**/*.{md,json,yml,yaml,css,mjs}\"",
     "points:export:sample": "npm run export:local --workspace @yieldshield/points-sqd -- --input packages/points-sqd/examples/actions.sample.json --output /tmp/yieldshield-front-end-points --chain-id 421614",
@@ -47,6 +48,9 @@
     "node": ">=20"
   },
   "packageManager": "npm@11.9.0",
+  "dependencies": {
+    "anymatch": "file:vendor/anymatch"
+  },
   "devDependencies": {
     "prettier": "^3.10.1"
   },
@@ -69,6 +73,7 @@
     },
     "abitype": {
       "zod": "^4.6.6"
-    }
+    },
+    "anymatch": "$anymatch"
   }
 }
