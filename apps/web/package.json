@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@mdx-js/react": "^3.1.1",
-    "@mdx-js/rollup": "^3.1.1",
     "@pythnetwork/hermes-client": "^3.1.0",
     "@rainbow-me/rainbowkit": "^2.2.11",
     "@tanstack/react-query": "^5.107.1",
@@ -31,6 +30,7 @@
     "wagmi": "^2.19.5"
   },
   "devDependencies": {
+    "@mdx-js/rollup": "^3.1.1",
     "@tailwindcss/postcss": "^4.3.5",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
